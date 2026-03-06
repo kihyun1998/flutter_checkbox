@@ -1,39 +1,115 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# flutter_checkbox
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+A customizable checkbox widget for Flutter with built-in label support, pixel-perfect size control, and smooth animations.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+## Why?
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Flutter's built-in `Checkbox` has limitations:
+
+- No inline label — requires wrapping with `Row` + `Text` every time.
+- Size control is indirect and unpredictable.
+- Excessive default padding that's hard to remove.
+
+`flutter_checkbox` solves these with a single, clean widget.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Built-in label** — pass `label` (String) or `labelWidget` (Widget) directly.
+- **Exact size control** — `CheckboxStyle.size` sets the box size in logical pixels.
+- **CustomPainter rendering** — crisp checkmark at any size, no Icon dependency.
+- **Full style customization** — colors, border width/radius, check stroke width.
+- **Animated transitions** — configurable duration and curve.
+- **Disabled state** — reduced opacity, tap ignored.
 
-## Getting started
+## Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+```yaml
+dependencies:
+  flutter_checkbox:
+    git:
+      url: <your-repo-url>
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+### Basic
 
 ```dart
-const like = 'sample';
+CustomCheckbox(
+  value: _isChecked,
+  label: 'I agree to the terms',
+  onChanged: (value) => setState(() => _isChecked = value),
+)
 ```
 
-## Additional information
+### Custom style
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+CustomCheckbox(
+  value: _isChecked,
+  label: 'Premium option',
+  style: CheckboxStyle(
+    size: 32,
+    activeColor: Colors.indigo,
+    checkColor: Colors.white,
+    borderRadius: 16, // circular
+    borderWidth: 2.5,
+  ),
+  onChanged: (value) => setState(() => _isChecked = value),
+)
+```
+
+### Custom label widget
+
+```dart
+CustomCheckbox(
+  value: _isChecked,
+  labelWidget: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(Icons.star, size: 16),
+      SizedBox(width: 4),
+      Text('Favorite'),
+    ],
+  ),
+  onChanged: (value) => setState(() => _isChecked = value),
+)
+```
+
+### Disabled
+
+```dart
+CustomCheckbox(
+  value: true,
+  enabled: false,
+  label: 'Read-only',
+)
+```
+
+## CheckboxStyle
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `size` | `double` | `24` | Box width & height |
+| `activeColor` | `Color?` | `ColorScheme.primary` | Checked background |
+| `checkColor` | `Color?` | `Colors.white` | Checkmark color |
+| `borderColor` | `Color?` | `ColorScheme.outline` | Unchecked border |
+| `inactiveColor` | `Color?` | `Colors.transparent` | Unchecked background |
+| `borderWidth` | `double` | `2` | Border stroke width |
+| `borderRadius` | `double` | `4` | Corner radius |
+| `checkStrokeWidth` | `double` | `2.5` | Checkmark stroke width |
+| `animationDuration` | `Duration` | `200ms` | Transition duration |
+| `animationCurve` | `Curve` | `Curves.easeInOut` | Transition curve |
+
+## Example
+
+Run the playground app:
+
+```bash
+cd example
+flutter run
+```
+
+## License
+
+MIT
