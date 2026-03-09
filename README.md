@@ -17,6 +17,7 @@ Flutter's built-in `Checkbox` has limitations:
 - **Built-in label** — pass `label` (String) or `labelWidget` (Widget) directly.
 - **Exact size control** — `CheckboxStyle.size` sets the box size in logical pixels.
 - **CustomPainter rendering** — crisp checkmark at any size, no Icon dependency.
+- **Shape options** — `CheckboxShape.rectangle` (default) or `CheckboxShape.circle`.
 - **Full style customization** — colors, border width/radius, check stroke width.
 - **Animated transitions** — configurable duration and curve.
 - **Disabled state** — reduced opacity, tap ignored.
@@ -52,8 +53,23 @@ CustomCheckbox(
     size: 32,
     activeColor: Colors.indigo,
     checkColor: Colors.white,
-    borderRadius: 16, // circular
+    borderRadius: 8,
     borderWidth: 2.5,
+  ),
+  onChanged: (value) => setState(() => _isChecked = value),
+)
+```
+
+### Circle shape
+
+```dart
+CustomCheckbox(
+  value: _isChecked,
+  label: 'Round checkbox',
+  style: CheckboxStyle(
+    shape: CheckboxShape.circle,
+    size: 32,
+    activeColor: Colors.teal,
   ),
   onChanged: (value) => setState(() => _isChecked = value),
 )
@@ -90,6 +106,7 @@ CustomCheckbox(
 
 | Property | Type | Default | Description |
 |---|---|---|---|
+| `shape` | `CheckboxShape` | `rectangle` | Box shape (`rectangle` / `circle`) |
 | `size` | `double` | `24` | Box width & height |
 | `activeColor` | `Color?` | `ColorScheme.primary` | Checked background |
 | `checkColor` | `Color?` | `Colors.white` | Checkmark color |

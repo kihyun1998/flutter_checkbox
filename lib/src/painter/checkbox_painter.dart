@@ -20,10 +20,7 @@ class CheckboxPainter extends CustomPainter {
   final double progress;
 
   /// Creates a painter that draws a checkbox at the given [progress].
-  CheckboxPainter({
-    required this.style,
-    required this.progress,
-  });
+  CheckboxPainter({required this.style, required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -36,30 +33,45 @@ class CheckboxPainter extends CustomPainter {
     }
   }
 
-  /// Draws the rounded-rect background fill and border.
+  /// Draws the background fill and border.
   ///
-  /// The background color interpolates from [CheckboxStyle.inactiveColor]
-  /// to [CheckboxStyle.activeColor] based on [progress].
+  /// Delegates to circle or rounded-rect drawing based on
+  /// [CheckboxStyle.shape]. The background color interpolates from
+  /// [CheckboxStyle.inactiveColor] to [CheckboxStyle.activeColor]
+  /// based on [progress].
   void _drawBackground(Canvas canvas, Rect rect, CheckboxStyle s) {
     final bgColor = Color.lerp(s.inactiveColor!, s.activeColor!, progress)!;
-    final currentBorderColor =
-        Color.lerp(s.borderColor!, s.activeColor!, progress)!;
-
-    final rrect = RRect.fromRectAndRadius(
-      rect.deflate(s.borderWidth / 2),
-      Radius.circular(s.borderRadius),
-    );
+    final currentBorderColor = Color.lerp(
+      s.borderColor!,
+      s.activeColor!,
+      progress,
+    )!;
 
     final bgPaint = Paint()
       ..color = bgColor
       ..style = PaintingStyle.fill;
-    canvas.drawRRect(rrect, bgPaint);
 
     final borderPaint = Paint()
       ..color = currentBorderColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = s.borderWidth;
-    canvas.drawRRect(rrect, borderPaint);
+
+    final insetRect = rect.deflate(s.borderWidth / 2);
+
+    switch (s.shape) {
+      case CheckboxShape.circle:
+        final center = insetRect.center;
+        final radius = insetRect.shortestSide / 2;
+        canvas.drawCircle(center, radius, bgPaint);
+        canvas.drawCircle(center, radius, borderPaint);
+      case CheckboxShape.rectangle:
+        final rrect = RRect.fromRectAndRadius(
+          insetRect,
+          Radius.circular(s.borderRadius),
+        );
+        canvas.drawRRect(rrect, bgPaint);
+        canvas.drawRRect(rrect, borderPaint);
+    }
   }
 
   /// Draws the checkmark stroke, progressively revealed by [progress].

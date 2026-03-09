@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_checkbox/flutter_checkbox.dart';
 
 Widget buildApp(Widget child) {
-  return MaterialApp(home: Scaffold(body: Center(child: child)));
+  return MaterialApp(
+    home: Scaffold(body: Center(child: child)),
+  );
 }
 
 Finder findCheckboxPaint() {
@@ -16,9 +18,9 @@ Finder findCheckboxPaint() {
 void main() {
   group('Rendering', () {
     testWidgets('renders without label', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(value: false, onChanged: (_) {}),
-      ));
+      await tester.pumpWidget(
+        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+      );
 
       expect(find.byType(CustomCheckbox), findsOneWidget);
       expect(findCheckboxPaint(), findsOneWidget);
@@ -26,21 +28,25 @@ void main() {
     });
 
     testWidgets('renders with text label', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(value: false, label: 'Agree', onChanged: (_) {}),
-      ));
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(value: false, label: 'Agree', onChanged: (_) {}),
+        ),
+      );
 
       expect(find.text('Agree'), findsOneWidget);
     });
 
     testWidgets('renders with custom label widget', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: false,
-          labelWidget: const Icon(Icons.star),
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            labelWidget: const Icon(Icons.star),
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       expect(find.byIcon(Icons.star), findsOneWidget);
     });
@@ -48,48 +54,54 @@ void main() {
 
   group('Size', () {
     testWidgets('default size is 24', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(value: false, onChanged: (_) {}),
-      ));
+      await tester.pumpWidget(
+        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+      );
 
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
       expect(paint.size, const Size.square(24));
     });
 
     testWidgets('respects custom size', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: false,
-          style: const CheckboxStyle(size: 48),
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            style: const CheckboxStyle(size: 48),
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
       expect(paint.size, const Size.square(48));
     });
 
     testWidgets('small size renders correctly', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: true,
-          style: const CheckboxStyle(size: 12),
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: true,
+            style: const CheckboxStyle(size: 12),
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
       expect(paint.size, const Size.square(12));
     });
 
     testWidgets('large size renders correctly', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: true,
-          style: const CheckboxStyle(size: 80),
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: true,
+            style: const CheckboxStyle(size: 80),
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
       expect(paint.size, const Size.square(80));
@@ -99,16 +111,18 @@ void main() {
   group('Interaction', () {
     testWidgets('tap toggles value from false to true', (tester) async {
       bool value = false;
-      await tester.pumpWidget(buildApp(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return CustomCheckbox(
-              value: value,
-              onChanged: (v) => setState(() => value = v),
-            );
-          },
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(CustomCheckbox));
       await tester.pump();
@@ -117,16 +131,18 @@ void main() {
 
     testWidgets('tap toggles value from true to false', (tester) async {
       bool value = true;
-      await tester.pumpWidget(buildApp(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return CustomCheckbox(
-              value: value,
-              onChanged: (v) => setState(() => value = v),
-            );
-          },
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(CustomCheckbox));
       await tester.pump();
@@ -135,17 +151,19 @@ void main() {
 
     testWidgets('tapping label also toggles', (tester) async {
       bool value = false;
-      await tester.pumpWidget(buildApp(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return CustomCheckbox(
-              value: value,
-              label: 'Click me',
-              onChanged: (v) => setState(() => value = v),
-            );
-          },
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                label: 'Click me',
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.text('Click me'));
       await tester.pump();
@@ -154,23 +172,25 @@ void main() {
 
     testWidgets('disabled checkbox ignores tap', (tester) async {
       bool value = false;
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: value,
-          enabled: false,
-          onChanged: (v) => value = v,
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: value,
+            enabled: false,
+            onChanged: (v) => value = v,
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(CustomCheckbox));
       await tester.pump();
       expect(value, false);
     });
 
-    testWidgets('null onChanged makes checkbox non-interactive', (tester) async {
-      await tester.pumpWidget(buildApp(
-        const CustomCheckbox(value: false),
-      ));
+    testWidgets('null onChanged makes checkbox non-interactive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp(const CustomCheckbox(value: false)));
 
       await tester.tap(find.byType(CustomCheckbox));
       await tester.pump();
@@ -180,16 +200,18 @@ void main() {
   group('Animation', () {
     testWidgets('animation runs on value change', (tester) async {
       bool value = false;
-      await tester.pumpWidget(buildApp(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return CustomCheckbox(
-              value: value,
-              onChanged: (v) => setState(() => value = v),
-            );
-          },
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(CustomCheckbox));
       // mid-animation
@@ -203,16 +225,18 @@ void main() {
 
     testWidgets('reverse animation on uncheck', (tester) async {
       bool value = true;
-      await tester.pumpWidget(buildApp(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return CustomCheckbox(
-              value: value,
-              onChanged: (v) => setState(() => value = v),
-            );
-          },
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
         ),
-      ));
+      );
 
       await tester.tap(find.byType(CustomCheckbox));
       await tester.pumpAndSettle();
@@ -222,46 +246,49 @@ void main() {
 
   group('Style', () {
     testWidgets('applies custom colors without error', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: true,
-          style: const CheckboxStyle(
-            activeColor: Colors.red,
-            checkColor: Colors.yellow,
-            borderColor: Colors.blue,
-            inactiveColor: Colors.grey,
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: true,
+            style: const CheckboxStyle(
+              activeColor: Colors.red,
+              checkColor: Colors.yellow,
+              borderColor: Colors.blue,
+              inactiveColor: Colors.grey,
+            ),
+            onChanged: (_) {},
           ),
-          onChanged: (_) {},
         ),
-      ));
+      );
 
       await tester.pumpAndSettle();
       expect(findCheckboxPaint(), findsOneWidget);
     });
 
     testWidgets('applies custom border radius and width', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: false,
-          style: const CheckboxStyle(
-            borderRadius: 12,
-            borderWidth: 3,
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            style: const CheckboxStyle(borderRadius: 12, borderWidth: 3),
+            onChanged: (_) {},
           ),
-          onChanged: (_) {},
         ),
-      ));
+      );
 
       expect(findCheckboxPaint(), findsOneWidget);
     });
 
     testWidgets('circular checkbox with borderRadius = size/2', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: true,
-          style: const CheckboxStyle(size: 30, borderRadius: 15),
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: true,
+            style: const CheckboxStyle(size: 30, borderRadius: 15),
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       await tester.pumpAndSettle();
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
@@ -271,18 +298,18 @@ void main() {
 
   group('Disabled state', () {
     testWidgets('renders with reduced opacity', (tester) async {
-      await tester.pumpWidget(buildApp(
-        const CustomCheckbox(value: false, enabled: false),
-      ));
+      await tester.pumpWidget(
+        buildApp(const CustomCheckbox(value: false, enabled: false)),
+      );
 
       final opacity = tester.widget<Opacity>(find.byType(Opacity));
       expect(opacity.opacity, 0.4);
     });
 
     testWidgets('enabled renders full opacity', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(value: false, onChanged: (_) {}),
-      ));
+      await tester.pumpWidget(
+        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+      );
 
       final opacity = tester.widget<Opacity>(find.byType(Opacity));
       expect(opacity.opacity, 1.0);
@@ -292,14 +319,16 @@ void main() {
   group('Label', () {
     testWidgets('custom labelStyle is applied', (tester) async {
       const style = TextStyle(fontSize: 20, color: Colors.red);
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: false,
-          label: 'Styled',
-          labelStyle: style,
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            label: 'Styled',
+            labelStyle: style,
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
       final text = tester.widget<Text>(find.text('Styled'));
       expect(text.style?.fontSize, 20);
@@ -307,21 +336,25 @@ void main() {
     });
 
     testWidgets('custom gap is respected', (tester) async {
-      await tester.pumpWidget(buildApp(
-        CustomCheckbox(
-          value: false,
-          label: 'Gap test',
-          gap: 20,
-          onChanged: (_) {},
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            label: 'Gap test',
+            gap: 20,
+            onChanged: (_) {},
+          ),
         ),
-      ));
+      );
 
-      final sizedBox = tester.widgetList<SizedBox>(
-        find.descendant(
-          of: find.byType(CustomCheckbox),
-          matching: find.byType(SizedBox),
-        ),
-      ).where((sb) => sb.width == 20);
+      final sizedBox = tester
+          .widgetList<SizedBox>(
+            find.descendant(
+              of: find.byType(CustomCheckbox),
+              matching: find.byType(SizedBox),
+            ),
+          )
+          .where((sb) => sb.width == 20);
       expect(sizedBox.length, 1);
     });
   });

@@ -65,10 +65,13 @@ class CheckboxLabel extends StatelessWidget {
     final theme = Theme.of(context);
     return Text(
       text!,
-      style: textStyle ??
+      style:
+          textStyle ??
           TextStyle(
             fontSize: fontSize,
-            color: enabled ? theme.textTheme.bodyMedium?.color : theme.disabledColor,
+            color: enabled
+                ? theme.textTheme.bodyMedium?.color
+                : theme.disabledColor,
           ),
     );
   }

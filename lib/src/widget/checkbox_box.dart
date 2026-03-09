@@ -22,11 +22,7 @@ class CheckboxBox extends StatelessWidget {
   final CheckboxStyle style;
 
   /// Creates a checkbox box that repaints as [animation] progresses.
-  const CheckboxBox({
-    super.key,
-    required this.animation,
-    required this.style,
-  });
+  const CheckboxBox({super.key, required this.animation, required this.style});
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +31,7 @@ class CheckboxBox extends StatelessWidget {
       builder: (context, _) {
         return CustomPaint(
           size: Size.square(style.size),
-          painter: CheckboxPainter(
-            style: style,
-            progress: animation.value,
-          ),
+          painter: CheckboxPainter(style: style, progress: animation.value),
         );
       },
     );

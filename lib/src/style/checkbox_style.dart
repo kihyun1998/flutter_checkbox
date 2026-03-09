@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// The shape of the checkbox box.
+enum CheckboxShape {
+  /// A rectangle with configurable [CheckboxStyle.borderRadius].
+  rectangle,
+
+  /// A circle. [CheckboxStyle.borderRadius] is ignored.
+  circle,
+}
+
 /// An immutable data class that holds all visual properties for [CustomCheckbox].
 ///
 /// This class is purely declarative and contains no widget or rendering logic.
@@ -11,8 +20,8 @@ import 'package:flutter/material.dart';
 ///   value: true,
 ///   style: CheckboxStyle(
 ///     size: 32,
+///     shape: CheckboxShape.circle,
 ///     activeColor: Colors.indigo,
-///     borderRadius: 8,
 ///   ),
 ///   onChanged: (v) {},
 /// )
@@ -22,6 +31,12 @@ import 'package:flutter/material.dart';
 /// All color properties default to `null` and are resolved from the current
 /// [ThemeData] via [resolve] before rendering.
 class CheckboxStyle {
+  /// The shape of the checkbox box.
+  ///
+  /// Defaults to [CheckboxShape.rectangle]. When set to
+  /// [CheckboxShape.circle], [borderRadius] is ignored.
+  final CheckboxShape shape;
+
   /// The width and height of the checkbox box in logical pixels.
   ///
   /// Defaults to `24`.
@@ -54,7 +69,7 @@ class CheckboxStyle {
 
   /// The corner radius of the checkbox box in logical pixels.
   ///
-  /// Defaults to `4`. Set to `size / 2` for a circular shape.
+  /// Defaults to `4`. Only applies when [shape] is [CheckboxShape.rectangle].
   final double borderRadius;
 
   /// The stroke width of the checkmark path in logical pixels.
@@ -77,6 +92,7 @@ class CheckboxStyle {
   /// All color parameters default to `null` and will be resolved from the
   /// ambient [ThemeData] at render time.
   const CheckboxStyle({
+    this.shape = CheckboxShape.rectangle,
     this.size = 24,
     this.activeColor,
     this.checkColor,
@@ -96,6 +112,7 @@ class CheckboxStyle {
   /// typically do not need to call this yourself.
   CheckboxStyle resolve(ThemeData theme) {
     return CheckboxStyle(
+      shape: shape,
       size: size,
       activeColor: activeColor ?? theme.colorScheme.primary,
       checkColor: checkColor ?? Colors.white,

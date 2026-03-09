@@ -31,6 +31,7 @@ class PlaygroundPage extends StatefulWidget {
 
 class _PlaygroundPageState extends State<PlaygroundPage> {
   // --- Playground controls ---
+  CheckboxShape _shape = CheckboxShape.rectangle;
   double _size = 24;
   double _borderWidth = 2;
   double _borderRadius = 4;
@@ -60,13 +61,14 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   };
 
   CheckboxStyle get _currentStyle => CheckboxStyle(
-        size: _size,
-        borderWidth: _borderWidth,
-        borderRadius: _borderRadius,
-        checkStrokeWidth: _checkStrokeWidth,
-        activeColor: _activeColor,
-        checkColor: _checkColor,
-      );
+    shape: _shape,
+    size: _size,
+    borderWidth: _borderWidth,
+    borderRadius: _borderRadius,
+    checkStrokeWidth: _checkStrokeWidth,
+    activeColor: _activeColor,
+    checkColor: _checkColor,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -145,19 +147,54 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       children: [
         Text('Controls', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 12),
+        SegmentedButton<CheckboxShape>(
+          segments: const [
+            ButtonSegment(
+              value: CheckboxShape.rectangle,
+              label: Text('Rectangle'),
+            ),
+            ButtonSegment(value: CheckboxShape.circle, label: Text('Circle')),
+          ],
+          selected: {_shape},
+          onSelectionChanged: (v) => setState(() => _shape = v.first),
+        ),
+        const SizedBox(height: 12),
         _buildSlider('Size', _size, 12, 64, (v) => setState(() => _size = v)),
-        _buildSlider('Border Width', _borderWidth, 0.5, 6,
-            (v) => setState(() => _borderWidth = v)),
-        _buildSlider('Border Radius', _borderRadius, 0, 32,
-            (v) => setState(() => _borderRadius = v)),
-        _buildSlider('Check Stroke', _checkStrokeWidth, 1, 6,
-            (v) => setState(() => _checkStrokeWidth = v)),
+        _buildSlider(
+          'Border Width',
+          _borderWidth,
+          0.5,
+          6,
+          (v) => setState(() => _borderWidth = v),
+        ),
+        _buildSlider(
+          'Border Radius',
+          _borderRadius,
+          0,
+          32,
+          (v) => setState(() => _borderRadius = v),
+        ),
+        _buildSlider(
+          'Check Stroke',
+          _checkStrokeWidth,
+          1,
+          6,
+          (v) => setState(() => _checkStrokeWidth = v),
+        ),
         const SizedBox(height: 8),
-        _buildColorPicker('Active Color', _colorOptions, _activeColor,
-            (c) => setState(() => _activeColor = c)),
+        _buildColorPicker(
+          'Active Color',
+          _colorOptions,
+          _activeColor,
+          (c) => setState(() => _activeColor = c),
+        ),
         const SizedBox(height: 8),
-        _buildColorPicker('Check Color', _checkColorOptions, _checkColor,
-            (c) => setState(() => _checkColor = c)),
+        _buildColorPicker(
+          'Check Color',
+          _checkColorOptions,
+          _checkColor,
+          (c) => setState(() => _checkColor = c),
+        ),
         const SizedBox(height: 8),
         SwitchListTile(
           title: const Text('Enabled'),
@@ -180,12 +217,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       children: [
         SizedBox(width: 120, child: Text(label)),
         Expanded(
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
         ),
         SizedBox(width: 48, child: Text(value.toStringAsFixed(1))),
       ],
@@ -226,5 +258,4 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
       ],
     );
   }
-
 }

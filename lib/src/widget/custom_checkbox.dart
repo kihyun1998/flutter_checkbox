@@ -118,10 +118,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
   @override
   void initState() {
     super.initState();
-    initCheckAnimation(
-      style: widget.style,
-      initialValue: widget.value,
-    );
+    initCheckAnimation(style: widget.style, initialValue: widget.value);
   }
 
   @override
@@ -155,10 +152,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
 
   @override
   Widget build(BuildContext context) {
-    final box = CheckboxBox(
-      animation: checkAnimation,
-      style: _resolvedStyle,
-    );
+    final box = CheckboxBox(animation: checkAnimation, style: _resolvedStyle);
 
     final label = CheckboxLabel(
       text: widget.label,
@@ -184,10 +178,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
     return GestureDetector(
       onTap: _handleTap,
       behavior: HitTestBehavior.opaque,
-      child: Opacity(
-        opacity: widget.enabled ? 1.0 : 0.4,
-        child: content,
-      ),
+      child: Opacity(opacity: widget.enabled ? 1.0 : 0.4, child: content),
     );
   }
 }
