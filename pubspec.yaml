@@ -2,7 +2,13 @@ name: flutter_checkbox
 description: "Customizable Flutter checkbox widgets with tristate, tile layout, hover ring, keyboard navigation, and smooth animations."
 version: 0.2.0
 homepage:
-repository:
+repository: https://github.com/kihyun1998/flutter_checkbox
+topics:
+  - checkbox
+  - widget
+  - ui
+  - form
+  - material-design
 
 environment:
   sdk: ^3.9.2
