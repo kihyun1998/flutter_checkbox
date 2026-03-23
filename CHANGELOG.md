@@ -1,3 +1,11 @@
+## 0.2.0
+
+- **Accessibility** — screen reader support via `Semantics` (checked state, label, enabled).
+- **Keyboard navigation** — Space/Enter toggles the checkbox; Tab moves focus between checkboxes.
+- **Focus ring** — visual indicator rendered around the box when focused.
+- **Scale** — new `scale` parameter uniformly scales the entire widget (box + label + gap), independent of `CheckboxStyle.size`.
+- New parameters: `autofocus` (bool, default `false`), `focusNode` (FocusNode?), `scale` (double, default `1.0`).
+
 ## 0.1.0
 
 - Initial release.

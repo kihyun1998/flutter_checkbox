@@ -102,6 +102,41 @@ CustomCheckbox(
 )
 ```
 
+### Scale
+
+Use `scale` to proportionally resize the entire widget (box + label + gap) without changing `CheckboxStyle.size`:
+
+```dart
+CustomCheckbox(
+  value: _isChecked,
+  label: 'Small checkbox',
+  scale: 0.75,
+  onChanged: (value) => setState(() => _isChecked = value),
+)
+```
+
+`scale` and `size` are independent — `size` sets the logical pixel dimensions of the box, while `scale` multiplies the final rendered output.
+
+### Accessibility / keyboard
+
+`CustomCheckbox` is fully accessible out of the box:
+
+- **Screen readers** — `Semantics` exposes `checked`, `enabled`, and the label automatically.
+- **Keyboard** — Space or Enter toggles the checkbox when focused; Tab moves between checkboxes.
+- **Focus ring** — a subtle ring appears around the box while keyboard-focused.
+
+Use `autofocus` or supply a `FocusNode` for programmatic focus control:
+
+```dart
+CustomCheckbox(
+  value: _isChecked,
+  label: 'Subscribe to newsletter',
+  autofocus: true,
+  focusNode: _myFocusNode,
+  onChanged: (value) => setState(() => _isChecked = value),
+)
+```
+
 ## CheckboxStyle
 
 | Property | Type | Default | Description |
@@ -117,6 +152,9 @@ CustomCheckbox(
 | `checkStrokeWidth` | `double` | `2.5` | Checkmark stroke width |
 | `animationDuration` | `Duration` | `200ms` | Transition duration |
 | `animationCurve` | `Curve` | `Curves.easeInOut` | Transition curve |
+| `autofocus` | `bool` | `false` | Request focus on first build |
+| `focusNode` | `FocusNode?` | `null` | External focus control |
+| `scale` | `double` | `1.0` | Uniform scale multiplier (independent of `size`) |
 
 ## Example
 

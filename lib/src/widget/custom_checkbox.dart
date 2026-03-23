@@ -97,6 +97,15 @@ class CustomCheckbox extends StatefulWidget {
   /// An optional [FocusNode] for controlling focus programmatically.
   final FocusNode? focusNode;
 
+  /// A uniform scale factor applied to the entire widget (box + label + gap).
+  ///
+  /// This is independent of [CheckboxStyle.size] — use [size] to set the
+  /// logical pixel dimensions and [scale] to proportionally resize the result.
+  ///
+  /// Defaults to `1.0` (no scaling). A value of `0.5` renders at half size;
+  /// `2.0` renders at double size.
+  final double scale;
+
   /// Creates a custom checkbox.
   ///
   /// The [value] parameter is required. Provide [onChanged] to make
@@ -114,6 +123,7 @@ class CustomCheckbox extends StatefulWidget {
     this.enabled = true,
     this.autofocus = false,
     this.focusNode,
+    this.scale = 1.0,
   }) : assert(
          label == null || labelWidget == null,
          'Cannot provide both label and labelWidget. Use one or the other.',
@@ -223,7 +233,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
 
     final isInteractive = widget.enabled && widget.onChanged != null;
 
-    return Semantics(
+    final checkbox = Semantics(
       checked: widget.value,
       enabled: widget.enabled,
       label: widget.label,
@@ -261,5 +271,8 @@ class _CustomCheckboxState extends State<CustomCheckbox>
         ),
       ),
     );
+
+    if (widget.scale == 1.0) return checkbox;
+    return Transform.scale(scale: widget.scale, child: checkbox);
   }
 }
