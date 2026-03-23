@@ -127,6 +127,7 @@ class _CustomCheckboxState extends State<CustomCheckbox>
     with SingleTickerProviderStateMixin, CheckboxAnimationMixin {
   late CheckboxStyle _resolvedStyle;
   bool _focused = false;
+  bool _hovered = false;
 
   @override
   void initState() {
@@ -167,6 +168,10 @@ class _CustomCheckboxState extends State<CustomCheckbox>
     setState(() => _focused = focused);
   }
 
+  void _handleHoverChange(bool hovered) {
+    setState(() => _hovered = hovered);
+  }
+
   @override
   Widget build(BuildContext context) {
     final box = CheckboxBox(animation: checkAnimation, style: _resolvedStyle);
@@ -181,16 +186,40 @@ class _CustomCheckboxState extends State<CustomCheckbox>
 
     final hasLabel = widget.label != null || widget.labelWidget != null;
 
+    // Wrap the box with hover highlight overlay
+    final boxWithOverlay = Stack(
+      alignment: Alignment.center,
+      children: [
+        if (_hovered || _focused)
+          Container(
+            width: _resolvedStyle.size + 8,
+            height: _resolvedStyle.size + 8,
+            decoration: BoxDecoration(
+              color: _focused
+                  ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
+                  : _resolvedStyle.hoverColor,
+              shape: _resolvedStyle.shape == CheckboxShape.circle
+                  ? BoxShape.circle
+                  : BoxShape.rectangle,
+              borderRadius: _resolvedStyle.shape == CheckboxShape.rectangle
+                  ? BorderRadius.circular(_resolvedStyle.borderRadius + 2)
+                  : null,
+            ),
+          ),
+        box,
+      ],
+    );
+
     final content = hasLabel
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              box,
+              boxWithOverlay,
               SizedBox(width: widget.gap),
               label,
             ],
           )
-        : box;
+        : boxWithOverlay;
 
     final isInteractive = widget.enabled && widget.onChanged != null;
 
@@ -204,6 +233,10 @@ class _CustomCheckboxState extends State<CustomCheckbox>
         autofocus: widget.autofocus,
         enabled: isInteractive,
         onFocusChange: _handleFocusChange,
+        onShowHoverHighlight: _handleHoverChange,
+        mouseCursor: isInteractive
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         shortcuts: const {
           SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
           SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
@@ -216,29 +249,14 @@ class _CustomCheckboxState extends State<CustomCheckbox>
             },
           ),
         },
-        child: GestureDetector(
-          onTap: _handleTap,
-          behavior: HitTestBehavior.opaque,
+        child: InkWell(
+          onTap: isInteractive ? _handleTap : null,
+          splashColor: _resolvedStyle.splashColor,
+          highlightColor: Colors.transparent,
+          borderRadius: BorderRadius.circular(_resolvedStyle.borderRadius + 2),
           child: Opacity(
             opacity: widget.enabled ? 1.0 : 0.4,
-            child: _focused
-                ? DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        _resolvedStyle.borderRadius + 2,
-                      ),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary
-                            .withOpacity(0.5),
-                        width: 2,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: content,
-                    ),
-                  )
-                : content,
+            child: content,
           ),
         ),
       ),

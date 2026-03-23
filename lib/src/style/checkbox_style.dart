@@ -77,6 +77,16 @@ class CheckboxStyle {
   /// Defaults to `2.5`.
   final double checkStrokeWidth;
 
+  /// The overlay color when the pointer hovers over the checkbox.
+  ///
+  /// If `null`, defaults to [ColorScheme.primary] at 8% opacity.
+  final Color? hoverColor;
+
+  /// The splash color shown on tap.
+  ///
+  /// If `null`, defaults to [ColorScheme.primary] at 12% opacity.
+  final Color? splashColor;
+
   /// The duration of the check/uncheck animation.
   ///
   /// Defaults to `Duration(milliseconds: 200)`.
@@ -98,6 +108,8 @@ class CheckboxStyle {
     this.checkColor,
     this.borderColor,
     this.inactiveColor,
+    this.hoverColor,
+    this.splashColor,
     this.borderWidth = 2,
     this.borderRadius = 4,
     this.checkStrokeWidth = 2.5,
@@ -111,13 +123,16 @@ class CheckboxStyle {
   /// This is called internally by [CustomCheckbox] during build — you
   /// typically do not need to call this yourself.
   CheckboxStyle resolve(ThemeData theme) {
+    final primary = theme.colorScheme.primary;
     return CheckboxStyle(
       shape: shape,
       size: size,
-      activeColor: activeColor ?? theme.colorScheme.primary,
+      activeColor: activeColor ?? primary,
       checkColor: checkColor ?? Colors.white,
       borderColor: borderColor ?? theme.colorScheme.outline,
       inactiveColor: inactiveColor ?? Colors.transparent,
+      hoverColor: hoverColor ?? primary.withOpacity(0.08),
+      splashColor: splashColor ?? primary.withOpacity(0.12),
       borderWidth: borderWidth,
       borderRadius: borderRadius,
       checkStrokeWidth: checkStrokeWidth,
