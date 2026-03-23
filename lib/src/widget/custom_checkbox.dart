@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../controller/checkbox_animation.dart';
 import '../style/checkbox_style.dart';
 import 'checkbox_box.dart';
@@ -87,6 +88,15 @@ class CustomCheckbox extends StatefulWidget {
   /// [onChanged] is not called on tap.
   final bool enabled;
 
+  /// Whether the checkbox can receive keyboard focus.
+  ///
+  /// Defaults to `true`. Set to `false` to skip this checkbox during
+  /// Tab-key traversal.
+  final bool autofocus;
+
+  /// An optional [FocusNode] for controlling focus programmatically.
+  final FocusNode? focusNode;
+
   /// Creates a custom checkbox.
   ///
   /// The [value] parameter is required. Provide [onChanged] to make
@@ -102,6 +112,8 @@ class CustomCheckbox extends StatefulWidget {
     this.gap = 8,
     this.style = const CheckboxStyle(),
     this.enabled = true,
+    this.autofocus = false,
+    this.focusNode,
   }) : assert(
          label == null || labelWidget == null,
          'Cannot provide both label and labelWidget. Use one or the other.',
@@ -114,6 +126,7 @@ class CustomCheckbox extends StatefulWidget {
 class _CustomCheckboxState extends State<CustomCheckbox>
     with SingleTickerProviderStateMixin, CheckboxAnimationMixin {
   late CheckboxStyle _resolvedStyle;
+  bool _focused = false;
 
   @override
   void initState() {
@@ -150,6 +163,10 @@ class _CustomCheckboxState extends State<CustomCheckbox>
     }
   }
 
+  void _handleFocusChange(bool focused) {
+    setState(() => _focused = focused);
+  }
+
   @override
   Widget build(BuildContext context) {
     final box = CheckboxBox(animation: checkAnimation, style: _resolvedStyle);
@@ -175,10 +192,56 @@ class _CustomCheckboxState extends State<CustomCheckbox>
           )
         : box;
 
-    return GestureDetector(
-      onTap: _handleTap,
-      behavior: HitTestBehavior.opaque,
-      child: Opacity(opacity: widget.enabled ? 1.0 : 0.4, child: content),
+    final isInteractive = widget.enabled && widget.onChanged != null;
+
+    return Semantics(
+      checked: widget.value,
+      enabled: widget.enabled,
+      label: widget.label,
+      excludeSemantics: widget.label != null,
+      child: FocusableActionDetector(
+        focusNode: widget.focusNode,
+        autofocus: widget.autofocus,
+        enabled: isInteractive,
+        onFocusChange: _handleFocusChange,
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              _handleTap();
+              return null;
+            },
+          ),
+        },
+        child: GestureDetector(
+          onTap: _handleTap,
+          behavior: HitTestBehavior.opaque,
+          child: Opacity(
+            opacity: widget.enabled ? 1.0 : 0.4,
+            child: _focused
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        _resolvedStyle.borderRadius + 2,
+                      ),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary
+                            .withOpacity(0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: content,
+                    ),
+                  )
+                : content,
+          ),
+        ),
+      ),
     );
   }
 }

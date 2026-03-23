@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_checkbox/flutter_checkbox.dart';
 
@@ -356,6 +358,141 @@ void main() {
           )
           .where((sb) => sb.width == 20);
       expect(sizedBox.length, 1);
+    });
+  });
+
+  group('Accessibility', () {
+    testWidgets('has correct Semantics when checked', (tester) async {
+      await tester.pumpWidget(
+        buildApp(CustomCheckbox(value: true, label: 'Agree', onChanged: (_) {})),
+      );
+
+      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
+      expect(semantics.hasFlag(SemanticsFlag.isChecked), true);
+      expect(semantics.hasFlag(SemanticsFlag.isEnabled), true);
+      expect(semantics.label, 'Agree');
+    });
+
+    testWidgets('has correct Semantics when unchecked', (tester) async {
+      await tester.pumpWidget(
+        buildApp(CustomCheckbox(value: false, label: 'Agree', onChanged: (_) {})),
+      );
+
+      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
+      expect(semantics.hasFlag(SemanticsFlag.isChecked), false);
+    });
+
+    testWidgets('Semantics reflects disabled state', (tester) async {
+      await tester.pumpWidget(
+        buildApp(const CustomCheckbox(value: false, enabled: false)),
+      );
+
+      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
+      expect(semantics.hasFlag(SemanticsFlag.isEnabled), false);
+    });
+  });
+
+  group('Focus & Keyboard', () {
+    testWidgets('Space key toggles checkbox', (tester) async {
+      bool value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                autofocus: true,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(value, true);
+    });
+
+    testWidgets('Enter key toggles checkbox', (tester) async {
+      bool value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                autofocus: true,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(value, true);
+    });
+
+    testWidgets('disabled checkbox ignores keyboard', (tester) async {
+      bool value = false;
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: value,
+            enabled: false,
+            onChanged: (v) => value = v,
+          ),
+        ),
+      );
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(value, false);
+    });
+
+    testWidgets('shows focus indicator when focused', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          CustomCheckbox(
+            value: false,
+            autofocus: true,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(find.byType(DecoratedBox), findsOneWidget);
+    });
+
+    testWidgets('accepts custom FocusNode', (tester) async {
+      final focusNode = FocusNode();
+      bool value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return CustomCheckbox(
+                value: value,
+                focusNode: focusNode,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      focusNode.requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(value, true);
+
+      focusNode.dispose();
     });
   });
 
