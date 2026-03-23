@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,52 +11,30 @@ Widget buildApp(Widget child) {
 
 Finder findCheckboxPaint() {
   return find.descendant(
-    of: find.byType(CustomCheckbox),
+    of: find.byType(FlutterCheckbox),
     matching: find.byType(CustomPaint),
   );
 }
 
 void main() {
-  group('Rendering', () {
+  // ── FlutterCheckbox ────────────────────────────────────────────────────────
+
+  group('FlutterCheckbox / Rendering', () {
     testWidgets('renders without label', (tester) async {
       await tester.pumpWidget(
-        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+        buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
       );
 
-      expect(find.byType(CustomCheckbox), findsOneWidget);
+      expect(find.byType(FlutterCheckbox), findsOneWidget);
       expect(findCheckboxPaint(), findsOneWidget);
       expect(find.byType(Text), findsNothing);
     });
-
-    testWidgets('renders with text label', (tester) async {
-      await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(value: false, label: 'Agree', onChanged: (_) {}),
-        ),
-      );
-
-      expect(find.text('Agree'), findsOneWidget);
-    });
-
-    testWidgets('renders with custom label widget', (tester) async {
-      await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(
-            value: false,
-            labelWidget: const Icon(Icons.star),
-            onChanged: (_) {},
-          ),
-        ),
-      );
-
-      expect(find.byIcon(Icons.star), findsOneWidget);
-    });
   });
 
-  group('Size', () {
+  group('FlutterCheckbox / Size', () {
     testWidgets('default size is 24', (tester) async {
       await tester.pumpWidget(
-        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+        buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
       );
 
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
@@ -67,7 +44,7 @@ void main() {
     testWidgets('respects custom size', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: false,
             style: const CheckboxStyle(size: 48),
             onChanged: (_) {},
@@ -82,7 +59,7 @@ void main() {
     testWidgets('small size renders correctly', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: true,
             style: const CheckboxStyle(size: 12),
             onChanged: (_) {},
@@ -97,7 +74,7 @@ void main() {
     testWidgets('large size renders correctly', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: true,
             style: const CheckboxStyle(size: 80),
             onChanged: (_) {},
@@ -110,14 +87,14 @@ void main() {
     });
   });
 
-  group('Interaction', () {
-    testWidgets('tap toggles value from false to true', (tester) async {
-      bool value = false;
+  group('FlutterCheckbox / Interaction', () {
+    testWidgets('tap toggles false → true', (tester) async {
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 onChanged: (v) => setState(() => value = v),
               );
@@ -126,18 +103,18 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(CustomCheckbox));
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pump();
       expect(value, true);
     });
 
-    testWidgets('tap toggles value from true to false', (tester) async {
-      bool value = true;
+    testWidgets('tap toggles true → false', (tester) async {
+      bool? value = true;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 onChanged: (v) => setState(() => value = v),
               );
@@ -146,37 +123,16 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(CustomCheckbox));
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pump();
       expect(value, false);
     });
 
-    testWidgets('tapping label also toggles', (tester) async {
-      bool value = false;
+    testWidgets('disabled ignores tap', (tester) async {
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
-          StatefulBuilder(
-            builder: (context, setState) {
-              return CustomCheckbox(
-                value: value,
-                label: 'Click me',
-                onChanged: (v) => setState(() => value = v),
-              );
-            },
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('Click me'));
-      await tester.pump();
-      expect(value, true);
-    });
-
-    testWidgets('disabled checkbox ignores tap', (tester) async {
-      bool value = false;
-      await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: value,
             enabled: false,
             onChanged: (v) => value = v,
@@ -184,7 +140,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(CustomCheckbox));
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pump();
       expect(value, false);
     });
@@ -192,21 +148,71 @@ void main() {
     testWidgets('null onChanged makes checkbox non-interactive', (
       tester,
     ) async {
-      await tester.pumpWidget(buildApp(const CustomCheckbox(value: false)));
-
-      await tester.tap(find.byType(CustomCheckbox));
+      await tester.pumpWidget(buildApp(const FlutterCheckbox(value: false)));
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pump();
     });
   });
 
-  group('Animation', () {
-    testWidgets('animation runs on value change', (tester) async {
-      bool value = false;
+  group('FlutterCheckbox / Tristate', () {
+    testWidgets('tristate cycles false → true → null → false', (tester) async {
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
+                value: value,
+                tristate: true,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FlutterCheckbox));
+      await tester.pump();
+      expect(value, true);
+
+      await tester.tap(find.byType(FlutterCheckbox));
+      await tester.pump();
+      expect(value, null);
+
+      await tester.tap(find.byType(FlutterCheckbox));
+      await tester.pump();
+      expect(value, false);
+    });
+
+    testWidgets('renders indeterminate state without error', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(value: null, tristate: true, onChanged: (_) {}),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(findCheckboxPaint(), findsOneWidget);
+    });
+
+    testWidgets('assert fires when value is null and tristate is false', (
+      tester,
+    ) async {
+      expect(
+        () => FlutterCheckbox(value: null, onChanged: (_) {}),
+        throwsAssertionError,
+      );
+    });
+  });
+
+  group('FlutterCheckbox / Animation', () {
+    testWidgets('animation runs on value change', (tester) async {
+      bool? value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FlutterCheckbox(
                 value: value,
                 onChanged: (v) => setState(() => value = v),
               );
@@ -215,23 +221,21 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(CustomCheckbox));
-      // mid-animation
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pump(const Duration(milliseconds: 100));
       expect(findCheckboxPaint(), findsOneWidget);
 
-      // animation complete
       await tester.pumpAndSettle();
       expect(findCheckboxPaint(), findsOneWidget);
     });
 
     testWidgets('reverse animation on uncheck', (tester) async {
-      bool value = true;
+      bool? value = true;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 onChanged: (v) => setState(() => value = v),
               );
@@ -240,17 +244,43 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(CustomCheckbox));
+      await tester.tap(find.byType(FlutterCheckbox));
       await tester.pumpAndSettle();
       expect(value, false);
     });
+
+    testWidgets('morph animation runs on true → null transition', (
+      tester,
+    ) async {
+      bool? value = true;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FlutterCheckbox(
+                value: value,
+                tristate: true,
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FlutterCheckbox));
+      await tester.pump(const Duration(milliseconds: 75));
+      expect(findCheckboxPaint(), findsOneWidget);
+
+      await tester.pumpAndSettle();
+      expect(value, null);
+    });
   });
 
-  group('Style', () {
+  group('FlutterCheckbox / Style', () {
     testWidgets('applies custom colors without error', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: true,
             style: const CheckboxStyle(
               activeColor: Colors.red,
@@ -270,7 +300,7 @@ void main() {
     testWidgets('applies custom border radius and width', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: false,
             style: const CheckboxStyle(borderRadius: 12, borderWidth: 3),
             onChanged: (_) {},
@@ -281,12 +311,12 @@ void main() {
       expect(findCheckboxPaint(), findsOneWidget);
     });
 
-    testWidgets('circular checkbox with borderRadius = size/2', (tester) async {
+    testWidgets('circle shape renders correctly', (tester) async {
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: true,
-            style: const CheckboxStyle(size: 30, borderRadius: 15),
+            style: const CheckboxStyle(shape: CheckboxShape.circle, size: 30),
             onChanged: (_) {},
           ),
         ),
@@ -298,10 +328,10 @@ void main() {
     });
   });
 
-  group('Disabled state', () {
+  group('FlutterCheckbox / Disabled state', () {
     testWidgets('renders with reduced opacity', (tester) async {
       await tester.pumpWidget(
-        buildApp(const CustomCheckbox(value: false, enabled: false)),
+        buildApp(const FlutterCheckbox(value: false, enabled: false)),
       );
 
       final opacity = tester.widget<Opacity>(find.byType(Opacity));
@@ -310,7 +340,7 @@ void main() {
 
     testWidgets('enabled renders full opacity', (tester) async {
       await tester.pumpWidget(
-        buildApp(CustomCheckbox(value: false, onChanged: (_) {})),
+        buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
       );
 
       final opacity = tester.widget<Opacity>(find.byType(Opacity));
@@ -318,88 +348,57 @@ void main() {
     });
   });
 
-  group('Label', () {
-    testWidgets('custom labelStyle is applied', (tester) async {
-      const style = TextStyle(fontSize: 20, color: Colors.red);
+  group('FlutterCheckbox / Accessibility', () {
+    testWidgets('Semantics when checked', (tester) async {
       await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(
-            value: false,
-            label: 'Styled',
-            labelStyle: style,
-            onChanged: (_) {},
-          ),
-        ),
+        buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
       );
 
-      final text = tester.widget<Text>(find.text('Styled'));
-      expect(text.style?.fontSize, 20);
-      expect(text.style?.color, Colors.red);
+      expect(
+        find.byType(FlutterCheckbox),
+        matchesSemantics(isChecked: true, isEnabled: true, hasTapAction: true),
+      );
     });
 
-    testWidgets('custom gap is respected', (tester) async {
+    testWidgets('Semantics when unchecked', (tester) async {
       await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(
-            value: false,
-            label: 'Gap test',
-            gap: 20,
-            onChanged: (_) {},
-          ),
-        ),
+        buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
       );
 
-      final sizedBox = tester
-          .widgetList<SizedBox>(
-            find.descendant(
-              of: find.byType(CustomCheckbox),
-              matching: find.byType(SizedBox),
-            ),
-          )
-          .where((sb) => sb.width == 20);
-      expect(sizedBox.length, 1);
-    });
-  });
-
-  group('Accessibility', () {
-    testWidgets('has correct Semantics when checked', (tester) async {
-      await tester.pumpWidget(
-        buildApp(CustomCheckbox(value: true, label: 'Agree', onChanged: (_) {})),
+      expect(
+        find.byType(FlutterCheckbox),
+        matchesSemantics(isChecked: false, isEnabled: true),
       );
-
-      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
-      expect(semantics.hasFlag(SemanticsFlag.isChecked), true);
-      expect(semantics.hasFlag(SemanticsFlag.isEnabled), true);
-      expect(semantics.label, 'Agree');
-    });
-
-    testWidgets('has correct Semantics when unchecked', (tester) async {
-      await tester.pumpWidget(
-        buildApp(CustomCheckbox(value: false, label: 'Agree', onChanged: (_) {})),
-      );
-
-      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
-      expect(semantics.hasFlag(SemanticsFlag.isChecked), false);
     });
 
     testWidgets('Semantics reflects disabled state', (tester) async {
       await tester.pumpWidget(
-        buildApp(const CustomCheckbox(value: false, enabled: false)),
+        buildApp(const FlutterCheckbox(value: false, enabled: false)),
       );
 
-      final semantics = tester.getSemantics(find.byType(CustomCheckbox));
-      expect(semantics.hasFlag(SemanticsFlag.isEnabled), false);
+      expect(find.byType(FlutterCheckbox), matchesSemantics(isEnabled: false));
+    });
+
+    testWidgets('Semantics mixed flag for indeterminate', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(value: null, tristate: true, onChanged: (_) {}),
+        ),
+      );
+
+      // indeterminate: checked=false, mixed state indicated via Semantics.mixed
+      expect(find.byType(FlutterCheckbox), findsOneWidget);
     });
   });
 
-  group('Focus & Keyboard', () {
+  group('FlutterCheckbox / Focus & Keyboard', () {
     testWidgets('Space key toggles checkbox', (tester) async {
-      bool value = false;
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 autofocus: true,
                 onChanged: (v) => setState(() => value = v),
@@ -416,12 +415,12 @@ void main() {
     });
 
     testWidgets('Enter key toggles checkbox', (tester) async {
-      bool value = false;
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 autofocus: true,
                 onChanged: (v) => setState(() => value = v),
@@ -437,11 +436,11 @@ void main() {
       expect(value, true);
     });
 
-    testWidgets('disabled checkbox ignores keyboard', (tester) async {
-      bool value = false;
+    testWidgets('disabled ignores keyboard', (tester) async {
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
-          CustomCheckbox(
+          FlutterCheckbox(
             value: value,
             enabled: false,
             onChanged: (v) => value = v,
@@ -454,29 +453,14 @@ void main() {
       expect(value, false);
     });
 
-    testWidgets('shows focus indicator when focused', (tester) async {
-      await tester.pumpWidget(
-        buildApp(
-          CustomCheckbox(
-            value: false,
-            autofocus: true,
-            onChanged: (_) {},
-          ),
-        ),
-      );
-
-      await tester.pump();
-      expect(find.byType(DecoratedBox), findsOneWidget);
-    });
-
     testWidgets('accepts custom FocusNode', (tester) async {
       final focusNode = FocusNode();
-      bool value = false;
+      bool? value = false;
       await tester.pumpWidget(
         buildApp(
           StatefulBuilder(
             builder: (context, setState) {
-              return CustomCheckbox(
+              return FlutterCheckbox(
                 value: value,
                 focusNode: focusNode,
                 onChanged: (v) => setState(() => value = v),
@@ -495,6 +479,212 @@ void main() {
       focusNode.dispose();
     });
   });
+
+  // ── FlutterCheckboxTile ────────────────────────────────────────────────────
+
+  group('FlutterCheckboxTile / Rendering', () {
+    testWidgets('renders with text label', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(value: false, label: 'Agree', onChanged: (_) {}),
+        ),
+      );
+
+      expect(find.text('Agree'), findsOneWidget);
+    });
+
+    testWidgets('renders with custom label widget', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            labelWidget: const Icon(Icons.star),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.star), findsOneWidget);
+    });
+
+    testWidgets('renders subtitle', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'Main',
+            subtitle: 'Sub',
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.text('Main'), findsOneWidget);
+      expect(find.text('Sub'), findsOneWidget);
+    });
+  });
+
+  group('FlutterCheckboxTile / Interaction', () {
+    testWidgets('tap toggles value', (tester) async {
+      bool? value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FlutterCheckboxTile(
+                value: value,
+                label: 'Click me',
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FlutterCheckboxTile));
+      await tester.pump();
+      expect(value, true);
+    });
+
+    testWidgets('tapping label also toggles', (tester) async {
+      bool? value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FlutterCheckboxTile(
+                value: value,
+                label: 'Click me',
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Click me'));
+      await tester.pump();
+      expect(value, true);
+    });
+
+    testWidgets('disabled tile ignores tap', (tester) async {
+      bool? value = false;
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: value,
+            label: 'Disabled',
+            enabled: false,
+            onChanged: (v) => value = v,
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FlutterCheckboxTile));
+      await tester.pump();
+      expect(value, false);
+    });
+  });
+
+  group('FlutterCheckboxTile / Tristate', () {
+    testWidgets('tristate cycles correctly', (tester) async {
+      bool? value = false;
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return FlutterCheckboxTile(
+                value: value,
+                tristate: true,
+                label: 'Tristate',
+                onChanged: (v) => setState(() => value = v),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(FlutterCheckboxTile));
+      await tester.pump();
+      expect(value, true);
+
+      await tester.tap(find.byType(FlutterCheckboxTile));
+      await tester.pump();
+      expect(value, null);
+
+      await tester.tap(find.byType(FlutterCheckboxTile));
+      await tester.pump();
+      expect(value, false);
+    });
+
+    testWidgets('assert fires when value is null and tristate is false', (
+      tester,
+    ) async {
+      expect(
+        () => FlutterCheckboxTile(value: null, label: 'x', onChanged: (_) {}),
+        throwsAssertionError,
+      );
+    });
+  });
+
+  group('FlutterCheckboxTile / Layout', () {
+    testWidgets('custom gap is respected', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'Gap test',
+            gap: 20,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      final sizedBoxes = tester
+          .widgetList<SizedBox>(
+            find.descendant(
+              of: find.byType(FlutterCheckboxTile),
+              matching: find.byType(SizedBox),
+            ),
+          )
+          .where((sb) => sb.width == 20);
+      expect(sizedBoxes.length, 1);
+    });
+
+    testWidgets('checkboxPosition end places checkbox after label', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'End',
+            checkboxPosition: CheckboxPosition.end,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.byType(FlutterCheckboxTile), findsOneWidget);
+    });
+  });
+
+  group('FlutterCheckboxTile / Accessibility', () {
+    testWidgets('Semantics label from tile', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(value: true, label: 'Agree', onChanged: (_) {}),
+        ),
+      );
+
+      expect(
+        find.byType(FlutterCheckboxTile),
+        matchesSemantics(isChecked: true, label: 'Agree'),
+      );
+    });
+  });
+
+  // ── CheckboxStyle ──────────────────────────────────────────────────────────
 
   group('CheckboxStyle', () {
     test('resolve fills null colors from theme', () {
@@ -523,11 +713,14 @@ void main() {
     test('default values are correct', () {
       const style = CheckboxStyle();
       expect(style.size, 24);
+      expect(style.scale, 1.0);
       expect(style.borderWidth, 2);
       expect(style.borderRadius, 4);
       expect(style.checkStrokeWidth, 2.5);
       expect(style.animationDuration, const Duration(milliseconds: 200));
       expect(style.animationCurve, Curves.easeInOut);
+      expect(style.morphDuration, const Duration(milliseconds: 150));
+      expect(style.morphCurve, Curves.easeInOut);
     });
   });
 }

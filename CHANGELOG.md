@@ -1,10 +1,34 @@
 ## 0.2.0
 
-- **Accessibility** — screen reader support via `Semantics` (checked state, label, enabled).
-- **Keyboard navigation** — Space/Enter toggles the checkbox; Tab moves focus between checkboxes.
-- **Focus ring** — visual indicator rendered around the box when focused.
-- **Scale** — new `scale` parameter uniformly scales the entire widget (box + label + gap), independent of `CheckboxStyle.size`.
-- New parameters: `autofocus` (bool, default `false`), `focusNode` (FocusNode?), `scale` (double, default `1.0`).
+**Breaking change:** `CustomCheckbox` has been replaced by two focused widgets.
+
+### New widgets
+
+- **`FlutterCheckbox`** — pure checkbox graphic with no label. Handles its own keyboard navigation, focus ring, and hover hit area.
+- **`FlutterCheckboxTile`** — checkbox + label + tile container with full background, border, shadow, and interaction customization.
+
+### New features
+
+- **Tristate** — `value: bool?` + `tristate: true` enables an indeterminate state (dash `—`). Two-controller animation smoothly crossfades between checkmark and dash.
+- **Extended hover hit area** — hover/tap zone matches the full ring area (`size + hoverRingPadding * 2`), not just the box. Layout size is always fixed.
+- **`CheckboxPosition`** — `start` / `end` to place the checkbox before or after the label in `FlutterCheckboxTile`.
+- **`subtitle` / `subtitleWidget`** — secondary text below the label in `FlutterCheckboxTile`.
+- **Tile customization** — `backgroundColor`, `selectedColor`, `disabledColor`, `tileBorderSide`, `tileBorderRadius`, `elevation`, `expandWidth`, `padding`, `margin`.
+- **Tile animation** — `tileAnimationDuration` / `tileAnimationCurve` for background color transitions.
+
+### `CheckboxStyle` changes
+
+- Added: `scale`, `morphDuration`, `morphCurve`, `hoverRingPadding`, `hoverRingShape`, `hoverRingBorderRadius`
+- Removed: `hoverColor`, `splashColor` (moved to `FlutterCheckboxTile` direct properties)
+
+### Migration
+
+| Before | After |
+|---|---|
+| `CustomCheckbox(value, onChanged)` | `FlutterCheckbox(value, onChanged)` |
+| `CustomCheckbox(value, label, onChanged)` | `FlutterCheckboxTile(value, label, onChanged)` |
+| `onChanged: (bool v) => ...` | `onChanged: (bool? v) => ...` |
+| `CheckboxStyle(hoverColor: ...)` | `FlutterCheckboxTile(hoverColor: ...)` |
 
 ## 0.1.0
 

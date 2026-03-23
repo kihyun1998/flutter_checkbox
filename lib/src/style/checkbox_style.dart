@@ -9,32 +9,11 @@ enum CheckboxShape {
   circle,
 }
 
-/// An immutable data class that holds all visual properties for [CustomCheckbox].
-///
-/// This class is purely declarative and contains no widget or rendering logic.
-/// Pass it to [CustomCheckbox.style] to customize appearance.
-///
-/// {@tool snippet}
-/// ```dart
-/// CustomCheckbox(
-///   value: true,
-///   style: CheckboxStyle(
-///     size: 32,
-///     shape: CheckboxShape.circle,
-///     activeColor: Colors.indigo,
-///   ),
-///   onChanged: (v) {},
-/// )
-/// ```
-/// {@end-tool}
-///
-/// All color properties default to `null` and are resolved from the current
-/// [ThemeData] via [resolve] before rendering.
+/// An immutable data class that holds all visual properties for [FlutterCheckbox].
 class CheckboxStyle {
   /// The shape of the checkbox box.
   ///
-  /// Defaults to [CheckboxShape.rectangle]. When set to
-  /// [CheckboxShape.circle], [borderRadius] is ignored.
+  /// Defaults to [CheckboxShape.rectangle].
   final CheckboxShape shape;
 
   /// The width and height of the checkbox box in logical pixels.
@@ -42,12 +21,17 @@ class CheckboxStyle {
   /// Defaults to `24`.
   final double size;
 
+  /// A uniform scale factor applied to the entire widget.
+  ///
+  /// Independent of [size]. Defaults to `1.0`.
+  final double scale;
+
   /// The background fill color when the checkbox is checked.
   ///
   /// If `null`, defaults to [ColorScheme.primary].
   final Color? activeColor;
 
-  /// The color of the checkmark stroke.
+  /// The color of the checkmark/dash stroke.
   ///
   /// If `null`, defaults to [Colors.white].
   final Color? checkColor;
@@ -72,22 +56,30 @@ class CheckboxStyle {
   /// Defaults to `4`. Only applies when [shape] is [CheckboxShape.rectangle].
   final double borderRadius;
 
-  /// The stroke width of the checkmark path in logical pixels.
+  /// The stroke width of the checkmark/dash path in logical pixels.
   ///
   /// Defaults to `2.5`.
   final double checkStrokeWidth;
 
-  /// The overlay color when the pointer hovers over the checkbox.
+  /// Extra space added around the box for the hover/focus ring.
   ///
-  /// If `null`, defaults to [ColorScheme.primary] at 8% opacity.
-  final Color? hoverColor;
+  /// The ring renders at `size + hoverRingPadding * 2`.
+  /// Defaults to `4`.
+  final double hoverRingPadding;
 
-  /// The splash color shown on tap.
+  /// Shape of the hover/focus ring.
   ///
-  /// If `null`, defaults to [ColorScheme.primary] at 12% opacity.
-  final Color? splashColor;
+  /// `null` (default) follows the checkbox shape — circle box → circle ring,
+  /// rectangle box → rounded-rect ring.
+  final CheckboxShape? hoverRingShape;
 
-  /// The duration of the check/uncheck animation.
+  /// Corner radius of the hover/focus ring when its shape is rectangle.
+  ///
+  /// `null` (default) uses `borderRadius + 2`.
+  /// Ignored when the effective ring shape is [CheckboxShape.circle].
+  final double? hoverRingBorderRadius;
+
+  /// The duration of the check/uncheck animation (background fill).
   ///
   /// Defaults to `Duration(milliseconds: 200)`.
   final Duration animationDuration;
@@ -97,47 +89,58 @@ class CheckboxStyle {
   /// Defaults to [Curves.easeInOut].
   final Curve animationCurve;
 
-  /// Creates a checkbox style with the given visual properties.
+  /// The duration of the checkmark ↔ dash crossfade animation.
   ///
-  /// All color parameters default to `null` and will be resolved from the
-  /// ambient [ThemeData] at render time.
+  /// Defaults to `Duration(milliseconds: 150)`.
+  final Duration morphDuration;
+
+  /// The easing curve applied to the checkmark ↔ dash crossfade.
+  ///
+  /// Defaults to [Curves.easeInOut].
+  final Curve morphCurve;
+
   const CheckboxStyle({
     this.shape = CheckboxShape.rectangle,
     this.size = 24,
+    this.scale = 1.0,
     this.activeColor,
     this.checkColor,
     this.borderColor,
     this.inactiveColor,
-    this.hoverColor,
-    this.splashColor,
     this.borderWidth = 2,
     this.borderRadius = 4,
     this.checkStrokeWidth = 2.5,
+    this.hoverRingPadding = 4,
+    this.hoverRingShape,
+    this.hoverRingBorderRadius,
     this.animationDuration = const Duration(milliseconds: 200),
     this.animationCurve = Curves.easeInOut,
+    this.morphDuration = const Duration(milliseconds: 150),
+    this.morphCurve = Curves.easeInOut,
   });
 
   /// Returns a new [CheckboxStyle] with all `null` colors replaced by
   /// theme-derived defaults.
-  ///
-  /// This is called internally by [CustomCheckbox] during build — you
-  /// typically do not need to call this yourself.
   CheckboxStyle resolve(ThemeData theme) {
     final primary = theme.colorScheme.primary;
     return CheckboxStyle(
       shape: shape,
       size: size,
+      scale: scale,
       activeColor: activeColor ?? primary,
       checkColor: checkColor ?? Colors.white,
       borderColor: borderColor ?? theme.colorScheme.outline,
       inactiveColor: inactiveColor ?? Colors.transparent,
-      hoverColor: hoverColor ?? primary.withOpacity(0.08),
-      splashColor: splashColor ?? primary.withOpacity(0.12),
       borderWidth: borderWidth,
       borderRadius: borderRadius,
       checkStrokeWidth: checkStrokeWidth,
+      hoverRingPadding: hoverRingPadding,
+      hoverRingShape: hoverRingShape,
+      hoverRingBorderRadius: hoverRingBorderRadius,
       animationDuration: animationDuration,
       animationCurve: animationCurve,
+      morphDuration: morphDuration,
+      morphCurve: morphCurve,
     );
   }
 }

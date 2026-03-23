@@ -3,42 +3,31 @@ import 'package:flutter/material.dart';
 import '../style/checkbox_style.dart';
 
 /// A [CustomPainter] that draws the checkbox graphic on a [Canvas].
-///
-/// This painter is a pure rendering layer — it receives a fully resolved
-/// [CheckboxStyle] and an animation [progress] value, then draws the
-/// rounded-rect background, border, and checkmark path accordingly.
-///
-/// Used internally by [CheckboxBox]. Not intended for direct use.
 class CheckboxPainter extends CustomPainter {
-  /// The fully resolved style containing colors, sizes, and radii.
   final CheckboxStyle style;
 
-  /// The animation progress from `0.0` (unchecked) to `1.0` (checked).
-  ///
-  /// Controls both the background color interpolation and the visible
-  /// length of the checkmark stroke.
+  /// Animation progress for background fill: `0.0` (unchecked) → `1.0` (checked).
   final double progress;
 
-  /// Creates a painter that draws a checkbox at the given [progress].
-  CheckboxPainter({required this.style, required this.progress});
+  /// Animation progress for checkmark ↔ dash crossfade:
+  /// `0.0` = checkmark, `1.0` = dash.
+  final double morphProgress;
+
+  CheckboxPainter({
+    required this.style,
+    required this.progress,
+    required this.morphProgress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = style;
     final rect = Offset.zero & size;
-
-    _drawBackground(canvas, rect, s);
+    _drawBackground(canvas, rect, style);
     if (progress > 0) {
-      _drawCheckmark(canvas, rect, s);
+      _drawContent(canvas, rect, style);
     }
   }
 
-  /// Draws the background fill and border.
-  ///
-  /// Delegates to circle or rounded-rect drawing based on
-  /// [CheckboxStyle.shape]. The background color interpolates from
-  /// [CheckboxStyle.inactiveColor] to [CheckboxStyle.activeColor]
-  /// based on [progress].
   void _drawBackground(Canvas canvas, Rect rect, CheckboxStyle s) {
     final bgColor = Color.lerp(s.inactiveColor!, s.activeColor!, progress)!;
     final currentBorderColor = Color.lerp(
@@ -74,14 +63,24 @@ class CheckboxPainter extends CustomPainter {
     }
   }
 
-  /// Draws the checkmark stroke, progressively revealed by [progress].
-  ///
-  /// The checkmark is defined by three proportional control points within
-  /// the bounding [rect], forming a standard check shape. The visible
-  /// portion of the path is clipped to `totalLength * progress`.
-  void _drawCheckmark(Canvas canvas, Rect rect, CheckboxStyle s) {
+  /// Draws checkmark and/or dash, crossfading between them via [morphProgress].
+  void _drawContent(Canvas canvas, Rect rect, CheckboxStyle s) {
+    if (morphProgress < 1.0) {
+      _drawCheckmark(canvas, rect, s, opacity: 1.0 - morphProgress);
+    }
+    if (morphProgress > 0.0) {
+      _drawDash(canvas, rect, s, opacity: morphProgress);
+    }
+  }
+
+  void _drawCheckmark(
+    Canvas canvas,
+    Rect rect,
+    CheckboxStyle s, {
+    required double opacity,
+  }) {
     final paint = Paint()
-      ..color = s.checkColor!
+      ..color = s.checkColor!.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = s.checkStrokeWidth
       ..strokeCap = StrokeCap.round
@@ -94,26 +93,47 @@ class CheckboxPainter extends CustomPainter {
     final p2 = Offset(cx * 0.42, cy * 0.70);
     final p3 = Offset(cx * 0.78, cy * 0.32);
 
-    final metric = _buildCheckPath(p1, p2, p3);
+    final metric = _buildPath([p1, p2, p3]);
     final drawLength = metric.length * progress;
-    final animatedPath = metric.extractPath(0, drawLength);
-
-    canvas.drawPath(animatedPath, paint);
+    canvas.drawPath(metric.extractPath(0, drawLength), paint);
   }
 
-  /// Builds a two-segment path (p1→p2→p3) and returns its [ui.PathMetric]
-  /// for length-based extraction.
-  ui.PathMetric _buildCheckPath(Offset p1, Offset p2, Offset p3) {
-    final path = Path()
-      ..moveTo(p1.dx, p1.dy)
-      ..lineTo(p2.dx, p2.dy)
-      ..lineTo(p3.dx, p3.dy);
+  void _drawDash(
+    Canvas canvas,
+    Rect rect,
+    CheckboxStyle s, {
+    required double opacity,
+  }) {
+    final paint = Paint()
+      ..color = s.checkColor!.withValues(alpha: opacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s.checkStrokeWidth
+      ..strokeCap = StrokeCap.round;
 
+    final cx = rect.width;
+    final cy = rect.height;
+
+    final p1 = Offset(cx * 0.25, cy * 0.50);
+    final p2 = Offset(cx * 0.75, cy * 0.50);
+
+    final metric = _buildPath([p1, p2]);
+    final drawLength = metric.length * progress;
+    canvas.drawPath(metric.extractPath(0, drawLength), paint);
+  }
+
+  ui.PathMetric _buildPath(List<Offset> points) {
+    assert(points.length >= 2);
+    final path = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final p in points.skip(1)) {
+      path.lineTo(p.dx, p.dy);
+    }
     return path.computeMetrics().first;
   }
 
   @override
-  bool shouldRepaint(covariant CheckboxPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.style != style;
+  bool shouldRepaint(covariant CheckboxPainter old) {
+    return old.progress != progress ||
+        old.morphProgress != morphProgress ||
+        old.style != style;
   }
 }
