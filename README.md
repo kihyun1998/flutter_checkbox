@@ -230,7 +230,7 @@ FlutterCheckbox(
 | `enabled` | `bool` | `true` | Interactive state |
 | `autofocus` | `bool` | `false` | Request focus on first build |
 | `focusNode` | `FocusNode?` | `null` | External focus control |
-| `mouseCursor` | `MouseCursor?` | `null` | Cursor override |
+| `mouseCursor` | `MouseCursor?` | `null` | Defaults to `click` / `basic` |
 
 ## Migration from 0.1.0
 

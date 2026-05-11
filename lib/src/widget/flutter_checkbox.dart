@@ -222,6 +222,7 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
         },
         child: InkWell(
           onTap: isInteractive ? _handleTap : null,
+          mouseCursor: cursor,
           splashColor: splashColor,
           highlightColor: Colors.transparent,
           hoverColor: Colors.transparent, // hover is managed by the ring

@@ -355,6 +355,7 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
         },
         child: InkWell(
           onTap: isInteractive ? _handleTap : null,
+          mouseCursor: cursor,
           hoverColor: hoverColor,
           splashColor: splashColor,
           highlightColor: widget.highlightColor,

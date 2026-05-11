@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Pass an explicit `mouseCursor` to the inner `InkWell` in `FlutterCheckbox` and `FlutterCheckboxTile`. The effective cursor was already resolved on the outer `FocusableActionDetector`, but newer Flutter versions resolve the cursor on the innermost `MouseRegion`, which caused user-provided `mouseCursor` overrides to be ignored on the hover area. The InkWell now reuses the same resolved cursor, so `widget.mouseCursor` overrides and the disabled fallback behave consistently across Flutter versions.
+
 ## 0.2.0
 
 **Breaking change:** `CustomCheckbox` has been replaced by two focused widgets.
