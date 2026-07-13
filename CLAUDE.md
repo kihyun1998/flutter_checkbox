@@ -33,3 +33,17 @@ rendering at any size.
 `CONTEXT.md` / `docs/adr/` do not exist yet — created lazily when a term collides
 or a decision is made. There is **no CI** yet, and the `flutter` environment
 floor is currently dishonest (see `docs/agents/theflow.md` Step 7).
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles, label strings equal to their names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root (created lazily). See `docs/agents/domain.md`.
