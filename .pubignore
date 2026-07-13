@@ -1,0 +1,29 @@
+# NOTE: a `.pubignore` switches `pub` to filesystem-walk mode — it STOPS
+# honoring `.gitignore` and publishes every file except those matched here.
+# So this file must re-list the build/dev artifacts `.gitignore` normally
+# hides (otherwise e.g. build/*.dill — tens of MB — would ship), in addition
+# to the agent/example files we deliberately keep out of the package.
+
+# Build & tooling artifacts (mirrors .gitignore; required in .pubignore mode)
+build/
+.dart_tool/
+coverage/
+pubspec.lock
+.flutter-plugins-dependencies
+*.log
+example/build/
+example/.dart_tool/
+
+# Agent / contributor tooling — tracked in git, not part of the package
+docs/
+CLAUDE.md
+
+# Example app: keep the Dart sources (pub.dev renders them); drop the
+# per-platform build scaffolding that only matters when running it locally.
+example/android/
+example/ios/
+example/web/
+example/linux/
+example/macos/
+example/windows/
+example/.metadata
