@@ -79,6 +79,26 @@ class CheckboxStyle {
   /// Ignored when the effective ring shape is [CheckboxShape.circle].
   final double? hoverRingBorderRadius;
 
+  /// The overlay colour of the ring while hovered.
+  ///
+  /// If `null`, defaults to `ColorScheme.primary` at 8% opacity.
+  final Color? hoverColor;
+
+  /// The overlay colour of the ring while focused.
+  ///
+  /// If `null`, defaults to `ColorScheme.primary` at 12% opacity.
+  final Color? focusColor;
+
+  /// The splash (ripple) colour on tap.
+  ///
+  /// If `null`, defaults to `ColorScheme.primary` at 12% opacity.
+  final Color? splashColor;
+
+  /// The opacity applied when the checkbox is disabled (`enabled: false`).
+  ///
+  /// Defaults to `0.4`.
+  final double disabledOpacity;
+
   /// The duration of the check/uncheck animation (background fill).
   ///
   /// Defaults to `Duration(milliseconds: 200)`.
@@ -113,6 +133,10 @@ class CheckboxStyle {
     this.hoverRingPadding = 4,
     this.hoverRingShape,
     this.hoverRingBorderRadius,
+    this.hoverColor,
+    this.focusColor,
+    this.splashColor,
+    this.disabledOpacity = 0.4,
     this.animationDuration = const Duration(milliseconds: 200),
     this.animationCurve = Curves.easeInOut,
     this.morphDuration = const Duration(milliseconds: 150),
@@ -139,6 +163,10 @@ class CheckboxStyle {
     double? hoverRingPadding,
     CheckboxShape? hoverRingShape,
     double? hoverRingBorderRadius,
+    Color? hoverColor,
+    Color? focusColor,
+    Color? splashColor,
+    double? disabledOpacity,
     Duration? animationDuration,
     Curve? animationCurve,
     Duration? morphDuration,
@@ -159,6 +187,10 @@ class CheckboxStyle {
       hoverRingShape: hoverRingShape ?? this.hoverRingShape,
       hoverRingBorderRadius:
           hoverRingBorderRadius ?? this.hoverRingBorderRadius,
+      hoverColor: hoverColor ?? this.hoverColor,
+      focusColor: focusColor ?? this.focusColor,
+      splashColor: splashColor ?? this.splashColor,
+      disabledOpacity: disabledOpacity ?? this.disabledOpacity,
       animationDuration: animationDuration ?? this.animationDuration,
       animationCurve: animationCurve ?? this.animationCurve,
       morphDuration: morphDuration ?? this.morphDuration,
@@ -184,6 +216,10 @@ class CheckboxStyle {
       hoverRingPadding: hoverRingPadding,
       hoverRingShape: hoverRingShape,
       hoverRingBorderRadius: hoverRingBorderRadius,
+      hoverColor: hoverColor ?? primary.withValues(alpha: 0.08),
+      focusColor: focusColor ?? primary.withValues(alpha: 0.12),
+      splashColor: splashColor ?? primary.withValues(alpha: 0.12),
+      disabledOpacity: disabledOpacity,
       animationDuration: animationDuration,
       animationCurve: animationCurve,
       morphDuration: morphDuration,

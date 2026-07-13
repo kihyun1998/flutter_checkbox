@@ -193,13 +193,15 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
 
     final isInteractive = widget.enabled && widget.onChanged != null;
 
-    final hoverColor = widget.hoverColor ?? primary.withValues(alpha: 0.08);
-    final splashColor = widget.splashColor ?? primary.withValues(alpha: 0.12);
-    final focusColor = widget.focusColor ?? primary.withValues(alpha: 0.12);
+    // Tile overlay defaults come from the checkbox style's resolved overlay
+    // colours, so the primary·alpha constants live in one place (CheckboxStyle).
+    final overlay = widget.checkboxStyle.resolve(theme);
+    final hoverColor = widget.hoverColor ?? overlay.hoverColor!;
+    final splashColor = widget.splashColor ?? overlay.splashColor!;
+    final focusColor = widget.focusColor ?? overlay.focusColor!;
     final cursor =
         widget.mouseCursor ??
         (isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
@@ -253,7 +255,9 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
               child: Opacity(
-                opacity: widget.enabled ? 1.0 : 0.4,
+                opacity: widget.enabled
+                    ? 1.0
+                    : widget.checkboxStyle.disabledOpacity,
                 child: widget.subtitleWidget ?? Text(widget.subtitle!),
               ),
             )

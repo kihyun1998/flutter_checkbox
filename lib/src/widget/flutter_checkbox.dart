@@ -164,10 +164,10 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
   @override
   Widget build(BuildContext context) {
     final isInteractive = widget.enabled && widget.onChanged != null;
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final hoverColor = primary.withValues(alpha: 0.08);
-    final splashColor = primary.withValues(alpha: 0.12);
+    // Overlay colours resolve from the style (theme defaults filled in
+    // didChangeDependencies); non-null after resolve.
+    final hoverColor = _resolved.hoverColor!;
+    final splashColor = _resolved.splashColor!;
 
     // scale is applied to the actual rendered size so hit area matches visual.
     final scaledSize = _resolved.size * _resolved.scale;
@@ -200,7 +200,7 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
       final ringSize =
           (_resolved.size + _resolved.hoverRingPadding * 2) * _resolved.scale;
       final ringColor = _focused
-          ? primary.withValues(alpha: 0.12)
+          ? _resolved.focusColor!
           : _hovered
           ? hoverColor
           : Colors.transparent;
@@ -283,7 +283,7 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
                     ),
                   ),
             child: Opacity(
-              opacity: widget.enabled ? 1.0 : 0.4,
+              opacity: widget.enabled ? 1.0 : _resolved.disabledOpacity,
               child: boxWithOverlay,
             ),
           ),

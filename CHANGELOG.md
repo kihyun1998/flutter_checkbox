@@ -4,6 +4,7 @@
 
 - **Checkbox-compatible API** — `FlutterCheckbox` now accepts `activeColor`, `checkColor`, and `semanticLabel` directly on the constructor, mirroring Flutter's built-in `Checkbox`. A top-level color overrides the matching field in `style`; when omitted, `style` (then the theme) supplies it. Migrating from `Checkbox` is mostly a rename.
 - **`CheckboxStyle.copyWith`** — returns a copy with selected fields replaced.
+- **`CheckboxStyle` overlay fields** — `hoverColor`, `focusColor`, `splashColor`, and `disabledOpacity` moved the previously hard-coded ring/overlay constants into the style, so they resolve in one place and are customizable. Defaults are unchanged (`primary` at 8%/12%, opacity `0.4`).
 
 ### Accessibility fixes
 

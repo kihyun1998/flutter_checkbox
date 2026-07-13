@@ -202,6 +202,10 @@ FlutterCheckbox(
 | `hoverRingPadding` | `double` | `4` | Space between box edge and ring edge |
 | `hoverRingShape` | `CheckboxShape?` | `null` (follows box) | Ring shape override |
 | `hoverRingBorderRadius` | `double?` | `null` (borderRadius + 2) | Ring corner radius override |
+| `hoverColor` | `Color?` | `primary` @ 8% | Ring overlay while hovered |
+| `focusColor` | `Color?` | `primary` @ 12% | Ring overlay while focused |
+| `splashColor` | `Color?` | `primary` @ 12% | Ripple colour on tap |
+| `disabledOpacity` | `double` | `0.4` | Opacity when `enabled: false` |
 
 ## FlutterCheckbox
 

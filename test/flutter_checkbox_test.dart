@@ -863,6 +863,35 @@ void main() {
       expect(copy.size, 30); // untouched
     });
 
+    test('resolve fills overlay colors from theme', () {
+      final theme = ThemeData.light();
+      final p = theme.colorScheme.primary;
+      final resolved = const CheckboxStyle().resolve(theme);
+
+      expect(resolved.hoverColor, p.withValues(alpha: 0.08));
+      expect(resolved.focusColor, p.withValues(alpha: 0.12));
+      expect(resolved.splashColor, p.withValues(alpha: 0.12));
+    });
+
+    test('resolve preserves explicit overlay colors', () {
+      final resolved = const CheckboxStyle(
+        hoverColor: Color(0xFF00FF00),
+        splashColor: Color(0xFF0000FF),
+      ).resolve(ThemeData.light());
+
+      expect(resolved.hoverColor, const Color(0xFF00FF00));
+      expect(resolved.splashColor, const Color(0xFF0000FF));
+    });
+
+    test('disabledOpacity defaults to 0.4 and is overridable', () {
+      expect(const CheckboxStyle().disabledOpacity, 0.4);
+      expect(const CheckboxStyle(disabledOpacity: 0.6).disabledOpacity, 0.6);
+      expect(
+        const CheckboxStyle().copyWith(disabledOpacity: 0.5).disabledOpacity,
+        0.5,
+      );
+    });
+
     test('default values are correct', () {
       const style = CheckboxStyle();
       expect(style.size, 24);
