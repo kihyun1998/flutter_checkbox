@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../controller/checkbox_value.dart';
 import '../style/checkbox_position.dart';
 import '../style/checkbox_style.dart';
-import 'checkbox_label.dart';
 import 'flutter_checkbox.dart';
 
 /// A tile widget that combines a [FlutterCheckbox] with a label and an
@@ -228,14 +227,21 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
 
     Widget? labelColumn;
     if (hasLabel || hasSubtitle) {
+      // A custom labelWidget wins; otherwise render the text label with the
+      // caller's style, or a default derived from the checkbox size + theme.
       final labelWidget = hasLabel
-          ? CheckboxLabel(
-              text: widget.label,
-              textStyle: widget.labelStyle,
-              fontSize: widget.checkboxStyle.size * 0.6,
-              enabled: widget.enabled,
-              child: widget.labelWidget,
-            )
+          ? (widget.labelWidget ??
+                Text(
+                  widget.label!,
+                  style:
+                      widget.labelStyle ??
+                      TextStyle(
+                        fontSize: widget.checkboxStyle.size * 0.6,
+                        color: widget.enabled
+                            ? theme.textTheme.bodyMedium?.color
+                            : theme.disabledColor,
+                      ),
+                ))
           : null;
 
       final subtitleWidget = hasSubtitle
