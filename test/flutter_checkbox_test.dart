@@ -1,7 +1,20 @@
+import 'dart:ui' show CheckedState, Tristate;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_checkbox/flutter_checkbox.dart';
+// Internal import: the resolved style lives on the painter, which is the
+// structural seam these parity tests assert against (not part of the barrel).
+import 'package:flutter_checkbox/src/painter/checkbox_painter.dart';
+
+/// Reads the merged semantics data for [finder].
+///
+/// Assert flags/actions off this directly rather than via `matchesSemantics`,
+/// which throws inside its own describeMismatch on any mismatch in this SDK.
+SemanticsData semanticsOf(WidgetTester tester, Finder finder) =>
+    tester.getSemantics(finder).getSemanticsData();
 
 Widget buildApp(Widget child) {
   return MaterialApp(
@@ -14,6 +27,12 @@ Finder findCheckboxPaint() {
     of: find.byType(FlutterCheckbox),
     matching: find.byType(CustomPaint),
   );
+}
+
+/// Reads the resolved [CheckboxStyle] off the rendered painter.
+CheckboxStyle resolvedStyle(WidgetTester tester) {
+  final paint = tester.widget<CustomPaint>(findCheckboxPaint());
+  return (paint.painter as CheckboxPainter).style;
 }
 
 void main() {
@@ -328,6 +347,120 @@ void main() {
     });
   });
 
+  group('FlutterCheckbox / Flutter API parity', () {
+    testWidgets('top-level activeColor overrides style.activeColor', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            activeColor: Colors.red,
+            style: const CheckboxStyle(activeColor: Colors.blue),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      // Precedence, not merge: the top-level param wins over the style's.
+      expect(resolvedStyle(tester).activeColor, Colors.red);
+    });
+
+    testWidgets('top-level checkColor overrides style.checkColor', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            checkColor: Colors.black,
+            style: const CheckboxStyle(checkColor: Colors.yellow),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(resolvedStyle(tester).checkColor, Colors.black);
+    });
+
+    testWidgets('falls back to style color when no top-level override', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            style: const CheckboxStyle(activeColor: Colors.green),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(resolvedStyle(tester).activeColor, Colors.green);
+    });
+
+    testWidgets('falls back to theme when neither is set', (tester) async {
+      await tester.pumpWidget(
+        buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
+      );
+
+      final theme = ThemeData.light();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: Center(
+              child: FlutterCheckbox(value: true, onChanged: (_) {}),
+            ),
+          ),
+        ),
+      );
+      expect(resolvedStyle(tester).activeColor, theme.colorScheme.primary);
+    });
+
+    testWidgets('semanticLabel is exposed to accessibility', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            semanticLabel: 'Accept terms',
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      // Assert the label directly off the node — `matchesSemantics` crashes on
+      // any mismatch in this SDK (its describeMismatch casts a null failure).
+      final node = tester.getSemantics(find.byType(FlutterCheckbox));
+      expect(node.label, 'Accept terms');
+    });
+
+    testWidgets('top-level color updates on rebuild', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            activeColor: Colors.red,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      expect(resolvedStyle(tester).activeColor, Colors.red);
+
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            activeColor: Colors.purple,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      // didUpdateWidget must re-resolve when the top-level color changes.
+      expect(resolvedStyle(tester).activeColor, Colors.purple);
+    });
+  });
+
   group('FlutterCheckbox / Disabled state', () {
     testWidgets('renders with reduced opacity', (tester) async {
       await tester.pumpWidget(
@@ -349,15 +482,19 @@ void main() {
   });
 
   group('FlutterCheckbox / Accessibility', () {
-    testWidgets('Semantics when checked', (tester) async {
+    testWidgets('Semantics when checked exposes state + tap on one node', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
       );
 
-      expect(
-        find.byType(FlutterCheckbox),
-        matchesSemantics(isChecked: true, isEnabled: true, hasTapAction: true),
-      );
+      // The checked state and the tap action must live on the SAME node, or a
+      // screen reader sees "checked" and "tappable" as two disjoint elements.
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.flagsCollection.isChecked, CheckedState.isTrue);
+      expect(d.flagsCollection.isEnabled, Tristate.isTrue);
+      expect(d.hasAction(SemanticsAction.tap), isTrue);
     });
 
     testWidgets('Semantics when unchecked', (tester) async {
@@ -365,10 +502,10 @@ void main() {
         buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
       );
 
-      expect(
-        find.byType(FlutterCheckbox),
-        matchesSemantics(isChecked: false, isEnabled: true),
-      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.flagsCollection.isChecked, CheckedState.isFalse);
+      expect(d.flagsCollection.isEnabled, Tristate.isTrue);
+      expect(d.hasAction(SemanticsAction.tap), isTrue);
     });
 
     testWidgets('Semantics reflects disabled state', (tester) async {
@@ -376,7 +513,10 @@ void main() {
         buildApp(const FlutterCheckbox(value: false, enabled: false)),
       );
 
-      expect(find.byType(FlutterCheckbox), matchesSemantics(isEnabled: false));
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.flagsCollection.isEnabled, Tristate.isFalse);
+      // A disabled checkbox must not advertise a tap action.
+      expect(d.hasAction(SemanticsAction.tap), isFalse);
     });
 
     testWidgets('Semantics mixed flag for indeterminate', (tester) async {
@@ -386,8 +526,8 @@ void main() {
         ),
       );
 
-      // indeterminate: checked=false, mixed state indicated via Semantics.mixed
-      expect(find.byType(FlutterCheckbox), findsOneWidget);
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.flagsCollection.isChecked, CheckedState.mixed);
     });
   });
 
@@ -670,17 +810,21 @@ void main() {
   });
 
   group('FlutterCheckboxTile / Accessibility', () {
-    testWidgets('Semantics label from tile', (tester) async {
+    testWidgets('Semantics exposes label, state and tap on one node', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildApp(
           FlutterCheckboxTile(value: true, label: 'Agree', onChanged: (_) {}),
         ),
       );
 
-      expect(
-        find.byType(FlutterCheckboxTile),
-        matchesSemantics(isChecked: true, label: 'Agree'),
-      );
+      // A labelled tile must remain activatable by assistive tech — the tap
+      // action has to sit on the same node as the label and checked state.
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      expect(d.label, 'Agree');
+      expect(d.flagsCollection.isChecked, CheckedState.isTrue);
+      expect(d.hasAction(SemanticsAction.tap), isTrue);
     });
   });
 
@@ -708,6 +852,15 @@ void main() {
 
       expect(resolved.activeColor, Colors.red);
       expect(resolved.checkColor, Colors.yellow);
+    });
+
+    test('copyWith overrides only the given fields', () {
+      const style = CheckboxStyle(activeColor: Colors.red, size: 30);
+      final copy = style.copyWith(checkColor: Colors.blue);
+
+      expect(copy.checkColor, Colors.blue);
+      expect(copy.activeColor, Colors.red); // untouched
+      expect(copy.size, 30); // untouched
     });
 
     test('default values are correct', () {

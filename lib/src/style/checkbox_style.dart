@@ -119,6 +119,53 @@ class CheckboxStyle {
     this.morphCurve = Curves.easeInOut,
   });
 
+  /// Returns a copy of this style with the given fields replaced.
+  ///
+  /// Any argument left `null` keeps the current value. Note this means
+  /// nullable color fields can only be *overwritten*, not reset to `null` —
+  /// which is exactly the merge semantics [FlutterCheckbox] needs when it
+  /// layers its top-level `activeColor` / `checkColor` over a `style`.
+  CheckboxStyle copyWith({
+    CheckboxShape? shape,
+    double? size,
+    double? scale,
+    Color? activeColor,
+    Color? checkColor,
+    Color? borderColor,
+    Color? inactiveColor,
+    double? borderWidth,
+    double? borderRadius,
+    double? checkStrokeWidth,
+    double? hoverRingPadding,
+    CheckboxShape? hoverRingShape,
+    double? hoverRingBorderRadius,
+    Duration? animationDuration,
+    Curve? animationCurve,
+    Duration? morphDuration,
+    Curve? morphCurve,
+  }) {
+    return CheckboxStyle(
+      shape: shape ?? this.shape,
+      size: size ?? this.size,
+      scale: scale ?? this.scale,
+      activeColor: activeColor ?? this.activeColor,
+      checkColor: checkColor ?? this.checkColor,
+      borderColor: borderColor ?? this.borderColor,
+      inactiveColor: inactiveColor ?? this.inactiveColor,
+      borderWidth: borderWidth ?? this.borderWidth,
+      borderRadius: borderRadius ?? this.borderRadius,
+      checkStrokeWidth: checkStrokeWidth ?? this.checkStrokeWidth,
+      hoverRingPadding: hoverRingPadding ?? this.hoverRingPadding,
+      hoverRingShape: hoverRingShape ?? this.hoverRingShape,
+      hoverRingBorderRadius:
+          hoverRingBorderRadius ?? this.hoverRingBorderRadius,
+      animationDuration: animationDuration ?? this.animationDuration,
+      animationCurve: animationCurve ?? this.animationCurve,
+      morphDuration: morphDuration ?? this.morphDuration,
+      morphCurve: morphCurve ?? this.morphCurve,
+    );
+  }
+
   /// Returns a new [CheckboxStyle] with all `null` colors replaced by
   /// theme-derived defaults.
   CheckboxStyle resolve(ThemeData theme) {

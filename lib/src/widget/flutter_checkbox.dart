@@ -33,11 +33,42 @@ class FlutterCheckbox extends StatefulWidget {
   final bool tristate;
 
   /// The visual style of the checkbox.
+  ///
+  /// For the two most common Flutter [Checkbox] properties — [activeColor] and
+  /// [checkColor] — you can pass them directly on the constructor instead of
+  /// reaching into [style]; see those fields for the precedence rule.
   final CheckboxStyle style;
+
+  /// The background fill color when checked — the top-level counterpart of
+  /// Flutter [Checkbox.activeColor].
+  ///
+  /// When non-null this **overrides** [CheckboxStyle.activeColor]. Resolution
+  /// order is: `activeColor` → `style.activeColor` → [ColorScheme.primary].
+  final Color? activeColor;
+
+  /// The checkmark/dash stroke color — the top-level counterpart of Flutter
+  /// [Checkbox.checkColor].
+  ///
+  /// When non-null this **overrides** [CheckboxStyle.checkColor]. Resolution
+  /// order is: `checkColor` → `style.checkColor` → [Colors.white].
+  final Color? checkColor;
+
+  /// A description of the checkbox for accessibility tools, mirroring Flutter
+  /// [Checkbox.semanticLabel].
+  ///
+  /// Announced by screen readers in addition to the checked/mixed state.
+  final String? semanticLabel;
 
   /// Whether the checkbox is interactive.
   ///
-  /// When `false`, the widget renders at 40% opacity and [onChanged] is not called.
+  /// When `false`, the widget renders at 40% opacity and [onChanged] is not
+  /// called. This is the way to render a **disabled** checkbox.
+  ///
+  /// Note this differs from Flutter's [Checkbox], which has no `enabled` and
+  /// treats `onChanged: null` as disabled. Here `onChanged: null` only makes
+  /// the checkbox non-interactive (the composition seam used by
+  /// [FlutterCheckboxTile]); for the greyed-out disabled look, use
+  /// `enabled: false`.
   final bool enabled;
 
   /// Whether the checkbox can receive keyboard focus.
@@ -58,6 +89,9 @@ class FlutterCheckbox extends StatefulWidget {
     this.onChanged,
     this.tristate = false,
     this.style = const CheckboxStyle(),
+    this.activeColor,
+    this.checkColor,
+    this.semanticLabel,
     this.enabled = true,
     this.autofocus = false,
     this.focusNode,
@@ -83,10 +117,21 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
     initCheckAnimation(style: widget.style, initialValue: widget.value);
   }
 
+  /// Layers the top-level [FlutterCheckbox.activeColor] / [checkColor] over
+  /// [style] (top-level wins), then fills theme defaults. Single source of
+  /// truth so every re-resolve path stays consistent.
+  void _updateResolvedStyle() {
+    final merged = widget.style.copyWith(
+      activeColor: widget.activeColor ?? widget.style.activeColor,
+      checkColor: widget.checkColor ?? widget.style.checkColor,
+    );
+    _resolved = merged.resolve(Theme.of(context));
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _resolved = widget.style.resolve(Theme.of(context));
+    _updateResolvedStyle();
   }
 
   @override
@@ -95,8 +140,10 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
     if (widget.value != old.value) {
       updateCheckAnimation(old.value, widget.value);
     }
-    if (widget.style != old.style) {
-      _resolved = widget.style.resolve(Theme.of(context));
+    if (widget.style != old.style ||
+        widget.activeColor != old.activeColor ||
+        widget.checkColor != old.checkColor) {
+      _updateResolvedStyle();
     }
   }
 
@@ -197,46 +244,55 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
         widget.mouseCursor ??
         (isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
 
-    return Semantics(
-      checked: widget.value ?? false,
-      mixed: widget.value == null,
-      enabled: widget.enabled,
-      child: FocusableActionDetector(
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        enabled: isInteractive,
-        onFocusChange: (v) => setState(() => _focused = v),
-        onShowHoverHighlight: (v) => setState(() => _hovered = v),
-        mouseCursor: cursor,
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-        },
-        actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              _handleTap();
-              return null;
-            },
-          ),
-        },
-        child: InkWell(
-          onTap: isInteractive ? _handleTap : null,
+    // MergeSemantics collapses the checked-state node and the InkWell's tap
+    // node into ONE node, so assistive tech announces "checkbox, checked,
+    // double-tap to toggle" instead of two disjoint nodes (state without a
+    // tap, tap without a state). This mirrors Flutter's own Checkbox.
+    return MergeSemantics(
+      child: Semantics(
+        checked: widget.value ?? false,
+        mixed: widget.value == null,
+        enabled: widget.enabled,
+        // `?? ''` keeps the no-label node identical to before (an explicit
+        // `label: null` would leave the node's label null instead of empty).
+        label: widget.semanticLabel ?? '',
+        child: FocusableActionDetector(
+          focusNode: widget.focusNode,
+          autofocus: widget.autofocus,
+          enabled: isInteractive,
+          onFocusChange: (v) => setState(() => _focused = v),
+          onShowHoverHighlight: (v) => setState(() => _hovered = v),
           mouseCursor: cursor,
-          splashColor: splashColor,
-          highlightColor: Colors.transparent,
-          hoverColor: Colors.transparent, // hover is managed by the ring
-          customBorder: effectiveRingShape == CheckboxShape.circle
-              ? const CircleBorder()
-              : RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    _resolved.hoverRingBorderRadius ??
-                        _resolved.borderRadius + 2,
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          },
+          actions: {
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) {
+                _handleTap();
+                return null;
+              },
+            ),
+          },
+          child: InkWell(
+            onTap: isInteractive ? _handleTap : null,
+            mouseCursor: cursor,
+            splashColor: splashColor,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent, // hover is managed by the ring
+            customBorder: effectiveRingShape == CheckboxShape.circle
+                ? const CircleBorder()
+                : RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      _resolved.hoverRingBorderRadius ??
+                          _resolved.borderRadius + 2,
+                    ),
                   ),
-                ),
-          child: Opacity(
-            opacity: widget.enabled ? 1.0 : 0.4,
-            child: boxWithOverlay,
+            child: Opacity(
+              opacity: widget.enabled ? 1.0 : 0.4,
+              child: boxWithOverlay,
+            ),
           ),
         ),
       ),

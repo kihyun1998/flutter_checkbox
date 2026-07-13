@@ -334,6 +334,11 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       mixed: widget.value == null,
       enabled: widget.enabled,
       label: widget.label,
+      // Put the tap action on THIS node. `excludeSemantics` drops the
+      // descendant InkWell's semantics (to avoid a duplicate label node), but
+      // that also dropped its tap action — leaving a labelled tile that screen
+      // readers couldn't activate. Providing onTap here restores it.
+      onTap: isInteractive ? _handleTap : null,
       excludeSemantics: widget.label != null,
       child: FocusableActionDetector(
         focusNode: widget.focusNode,

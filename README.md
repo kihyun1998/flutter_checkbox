@@ -26,8 +26,9 @@ Flutter's built-in `Checkbox` has limitations:
 - **Exact size control** — `CheckboxStyle.size` in logical pixels, `scale` for proportional resize.
 - **Shape options** — `CheckboxShape.rectangle` or `CheckboxShape.circle`.
 - **Hover ring** — configurable padding, shape, and border radius, independent of the box.
+- **Familiar API** — the common `Checkbox` properties (`activeColor`, `checkColor`, `semanticLabel`) are available directly on the constructor, so migrating from the built-in `Checkbox` is mostly a rename.
 - **Keyboard navigation** — Space/Enter toggles; Tab navigates focus.
-- **Screen reader support** — `Semantics` exposes checked, mixed, enabled, and label.
+- **Screen reader support** — checked/mixed/enabled state and the tap action are merged onto a single `Semantics` node, so assistive tech announces (and activates) it as one control.
 - **Disabled state** — reduced opacity, tap and keyboard ignored.
 
 ## Installation
@@ -60,7 +61,27 @@ FlutterCheckboxTile(
 )
 ```
 
+### Colors (Checkbox-compatible)
+
+The two most common `Checkbox` colors sit right on the constructor, so code
+coming from the built-in widget keeps working with just a rename:
+
+```dart
+FlutterCheckbox(
+  value: _isChecked,
+  activeColor: Colors.indigo,   // same as Checkbox.activeColor
+  checkColor: Colors.white,     // same as Checkbox.checkColor
+  semanticLabel: 'I agree',     // same as Checkbox.semanticLabel
+  onChanged: (value) => setState(() => _isChecked = value!),
+)
+```
+
+A top-level color overrides the same field in `style`; when omitted, `style`
+(then the theme) supplies it.
+
 ### Custom style
+
+For everything beyond the common colors, use `style`:
 
 ```dart
 FlutterCheckbox(
@@ -190,7 +211,10 @@ FlutterCheckbox(
 | `onChanged` | `ValueChanged<bool?>?` | `null` | Callback. `null` = non-interactive |
 | `tristate` | `bool` | `false` | Allow `null` value |
 | `style` | `CheckboxStyle` | `CheckboxStyle()` | Visual style |
-| `enabled` | `bool` | `true` | When `false`, renders at 40% opacity |
+| `activeColor` | `Color?` | `null` | Checked fill; overrides `style.activeColor` (≈ `Checkbox.activeColor`) |
+| `checkColor` | `Color?` | `null` | Checkmark/dash color; overrides `style.checkColor` (≈ `Checkbox.checkColor`) |
+| `semanticLabel` | `String?` | `null` | Accessibility label (≈ `Checkbox.semanticLabel`) |
+| `enabled` | `bool` | `true` | When `false`, renders at 40% opacity. Disable via this, not `onChanged: null` |
 | `autofocus` | `bool` | `false` | Request focus on first build |
 | `focusNode` | `FocusNode?` | `null` | External focus control |
 | `mouseCursor` | `MouseCursor?` | `null` | Defaults to `click` / `basic` |
