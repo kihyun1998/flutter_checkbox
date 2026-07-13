@@ -1,6 +1,6 @@
 name: flutter_checkbox
 description: "Customizable Flutter checkbox widgets with tristate, tile layout, hover ring, keyboard navigation, and smooth animations."
-version: 0.3.0
+version: 0.3.1
 homepage: https://github.com/kihyun1998/flutter_checkbox
 repository: https://github.com/kihyun1998/flutter_checkbox
 topics:
@@ -11,10 +11,11 @@ topics:
   - material-design
 
 environment:
-  sdk: ^3.9.2
-  # Dart ^3.9.2 first ships with Flutter 3.35; keep the two floors consistent.
-  # (The package also uses Color.withValues, Flutter 3.27+, which 3.35 subsumes.)
-  flutter: ">=3.35.0"
+  sdk: ">=3.6.0 <4.0.0"
+  # Floor = the highest API the code actually uses, so the widest range of users
+  # can install. Color.withValues (the newest call) landed in Flutter 3.27 /
+  # Dart 3.6; everything else (records, switch expressions) needs only Dart 3.0.
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:

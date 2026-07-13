@@ -35,10 +35,12 @@ Flutter's built-in `Checkbox` has limitations:
 
 ```yaml
 dependencies:
-  flutter_checkbox: ^0.3.0
+  flutter_checkbox: ^0.3.1
 ```
 
 Then run `flutter pub get`.
+
+Requires Flutter 3.27+ (Dart 3.6+).
 
 ## Usage
 

@@ -1,3 +1,9 @@
+## 0.3.1
+
+### Fixes
+
+- **Flutter floor widened** from `>=3.35.0` to `>=3.27.0` (Dart `>=3.6.0 <4.0.0`). 0.3.0 set the floor to the SDK it happened to be built with, but the newest API the code actually uses is `Color.withValues` (Flutter 3.27 / Dart 3.6) — everything else needs only Dart 3.0. The old floor turned away compatible Flutter 3.27–3.34 users for no reason. Pure constraint widening: no API or behaviour change.
+
 ## 0.3.0
 
 ### New features
