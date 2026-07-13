@@ -35,10 +35,10 @@ Flutter's built-in `Checkbox` has limitations:
 
 ```yaml
 dependencies:
-  flutter_checkbox:
-    git:
-      url: <your-repo-url>
+  flutter_checkbox: ^0.3.0
 ```
+
+Then run `flutter pub get`.
 
 ## Usage
 
@@ -159,6 +159,19 @@ FlutterCheckbox(
 ```
 
 `scale` proportionally resizes the box, hover ring, and hit area together.
+
+### Checkmark size
+
+```dart
+FlutterCheckbox(
+  value: _isChecked,
+  style: CheckboxStyle(checkScale: 0.7), // smaller tick with more padding
+  onChanged: (value) => setState(() => _isChecked = value!),
+)
+```
+
+`checkScale` sizes the checkmark/dash within the box (about its centre);
+`checkStrokeWidth` stays independent.
 
 ### Disabled
 
