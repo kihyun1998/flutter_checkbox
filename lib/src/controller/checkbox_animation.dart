@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../style/checkbox_style.dart';
+import 'checkbox_value.dart';
 
 /// A mixin that manages the two [AnimationController]s needed by
 /// [FlutterCheckbox]:
@@ -39,36 +40,35 @@ mixin CheckboxAnimationMixin<T extends StatefulWidget>
     );
 
     // Snap to initial state without animation.
-    if (initialValue == true) {
-      checkController.value = 1.0;
-    } else if (initialValue == null) {
-      checkController.value = 1.0;
-      morphController.value = 1.0;
-    }
+    final rest = CheckboxValue.restingProgress(initialValue);
+    checkController.value = rest.check;
+    morphController.value = rest.morph;
   }
 
   /// Animates to [newValue] from [oldValue].
   ///
-  /// Handles all six tristate transitions.
+  /// Classification of the change lives in [CheckboxValue.transition] (pure,
+  /// unit-tested); this method only applies the resulting effect to the live
+  /// controllers.
   void updateCheckAnimation(bool? oldValue, bool? newValue) {
-    switch ((oldValue, newValue)) {
-      case (false, true):
+    switch (CheckboxValue.transition(oldValue, newValue)) {
+      case CheckboxTransition.fillIn:
         checkController.forward();
-      case (true, false):
+      case CheckboxTransition.fillOut:
         checkController.reverse();
-      case (false, null):
+      case CheckboxTransition.fillInMorphToDash:
         checkController.forward();
         morphController.forward();
-      case (null, false):
+      case CheckboxTransition.fillOutResetMorph:
         checkController.reverse();
         // Reset morph after background animation completes (no visual impact
         // since progress will be 0, but keeps state consistent).
         checkController.addStatusListener(_resetMorphOnDismiss);
-      case (true, null):
+      case CheckboxTransition.morphToDash:
         morphController.forward();
-      case (null, true):
+      case CheckboxTransition.morphToCheck:
         morphController.reverse();
-      default:
+      case CheckboxTransition.none:
         break;
     }
   }

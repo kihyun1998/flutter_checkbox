@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../controller/checkbox_animation.dart';
+import '../controller/checkbox_value.dart';
 import '../painter/checkbox_painter.dart';
 import '../style/checkbox_style.dart';
 
@@ -155,17 +156,9 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
 
   void _handleTap() {
     if (!widget.enabled || widget.onChanged == null) return;
-    if (widget.tristate) {
-      // Cycle: false → true → null → false
-      final next = switch (widget.value) {
-        false => true,
-        true => null,
-        null => false,
-      };
-      widget.onChanged!(next);
-    } else {
-      widget.onChanged!(!widget.value!);
-    }
+    widget.onChanged!(
+      CheckboxValue.next(widget.value, tristate: widget.tristate),
+    );
   }
 
   @override

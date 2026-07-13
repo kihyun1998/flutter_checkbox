@@ -20,7 +20,8 @@ Single Flutter package, **no external dependencies**. Barrel
 | `widget/flutter_checkbox_tile.dart` | tile layout wrapping `FlutterCheckbox` with `onChanged: null` (the tile owns interaction) | ✅ |
 | `widget/checkbox_label.dart` | the tile's label | internal |
 | `painter/checkbox_painter.dart` | `CustomPainter` — box fill + checkmark/dash, paints at `size * scale` | internal |
-| `controller/checkbox_animation.dart` | `CheckboxAnimationMixin` — `checkAnimation` (fill) + `morphAnimation` (check ↔ dash crossfade) | internal |
+| `controller/checkbox_value.dart` | `CheckboxValue` — pure tristate machine: `next` (cycle), `transition` (change → animation), `restingProgress` (snap). No State/Ticker/context; unit-tested without a pump | internal |
+| `controller/checkbox_animation.dart` | `CheckboxAnimationMixin` — `checkAnimation` (fill) + `morphAnimation` (check ↔ dash crossfade); classifies changes via `CheckboxValue.transition`, applies the effect | internal |
 | `style/checkbox_style.dart` | `CheckboxStyle` (size, scale, shape, borderRadius, hoverRing*) + `resolve(Theme)` | ✅ |
 | `style/checkbox_position.dart` | `CheckboxPosition` (tile) | ✅ |
 
