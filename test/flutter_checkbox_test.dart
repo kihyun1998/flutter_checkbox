@@ -286,6 +286,45 @@ void main() {
       expect(value, false);
     });
 
+    // Drive each tristate transition directly by re-pumping with a new value,
+    // exercising every branch of CheckboxAnimationMixin.updateCheckAnimation.
+    testWidgets('animates false → null (fill + morph forward)', (tester) async {
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: false, tristate: true)),
+      );
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: null, tristate: true)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpAndSettle();
+      expect(findCheckboxPaint(), findsOneWidget);
+    });
+
+    testWidgets('animates null → true (morph reverse)', (tester) async {
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: null, tristate: true)),
+      );
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: true, tristate: true)),
+      );
+      await tester.pumpAndSettle();
+      expect(findCheckboxPaint(), findsOneWidget);
+    });
+
+    testWidgets('animates null → false (fill out, then resets morph)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: null, tristate: true)),
+      );
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: false, tristate: true)),
+      );
+      // Settle so the fill controller dismisses and _resetMorphOnDismiss fires.
+      await tester.pumpAndSettle();
+      expect(findCheckboxPaint(), findsOneWidget);
+    });
+
     testWidgets('morph animation runs on true → null transition', (
       tester,
     ) async {
@@ -846,6 +885,78 @@ void main() {
       );
 
       expect(find.byType(FlutterCheckboxTile), findsOneWidget);
+    });
+  });
+
+  group('FlutterCheckboxTile / Chrome', () {
+    testWidgets('elevation renders a raised Material', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'Elevated',
+            elevation: 4,
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      final materials = tester.widgetList<Material>(find.byType(Material));
+      expect(materials.any((m) => m.elevation == 4), isTrue);
+    });
+
+    testWidgets('margin wraps the tile in padding', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'Margined',
+            margin: const EdgeInsets.all(11),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      final paddings = tester.widgetList<Padding>(
+        find.descendant(
+          of: find.byType(FlutterCheckboxTile),
+          matching: find.byType(Padding),
+        ),
+      );
+      expect(
+        paddings.any((p) => p.padding == const EdgeInsets.all(11)),
+        isTrue,
+      );
+    });
+
+    testWidgets('tileBorderSide renders without error', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            label: 'Bordered',
+            tileBorderSide: const BorderSide(color: Colors.red, width: 2),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.byType(FlutterCheckboxTile), findsOneWidget);
+    });
+
+    testWidgets('disabled tile still renders its subtitle', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            label: 'Main',
+            subtitle: 'Sub',
+            enabled: false,
+          ),
+        ),
+      );
+
+      expect(find.text('Sub'), findsOneWidget);
     });
   });
 

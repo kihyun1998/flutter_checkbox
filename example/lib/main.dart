@@ -40,6 +40,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double _borderWidth = 2;
   double _borderRadius = 4;
   double _checkStrokeWidth = 2.5;
+  double _checkScale = 1.0;
+  double _disabledOpacity = 0.4;
   Color _activeColor = Colors.indigo;
   Color _checkColor = Colors.white;
   double _animationDurationMs = 200;
@@ -76,6 +78,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   // ── Tile interaction ───────────────────────────────────────────────────────
   Color? _hoverColor;
   Color? _splashColor;
+  Color? _focusColor;
 
   // ── Tile shadow ────────────────────────────────────────────────────────────
   double _elevation = 0;
@@ -122,6 +125,9 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     borderWidth: _borderWidth,
     borderRadius: _borderRadius,
     checkStrokeWidth: _checkStrokeWidth,
+    checkScale: _checkScale,
+    disabledOpacity: _disabledOpacity,
+    focusColor: _focusColor,
     hoverRingPadding: _hoverRingPadding,
     hoverRingShape: _hoverRingShape,
     hoverRingBorderRadius: _hoverRingBorderRadius,
@@ -195,6 +201,20 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             1,
             6,
             (v) => setState(() => _checkStrokeWidth = v),
+          ),
+          _slider(
+            'Check Scale',
+            _checkScale,
+            0.5,
+            1.5,
+            (v) => setState(() => _checkScale = v),
+          ),
+          _slider(
+            'Disabled Opacity',
+            _disabledOpacity,
+            0,
+            1,
+            (v) => setState(() => _disabledOpacity = v),
           ),
           _slider(
             'Hover Ring',
@@ -373,6 +393,13 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             _interactionColors,
             _splashColor,
             (c) => setState(() => _splashColor = c),
+          ),
+          const SizedBox(height: 8),
+          _nullableColorPicker(
+            'Focus Color',
+            _interactionColors,
+            _focusColor,
+            (c) => setState(() => _focusColor = c),
           ),
 
           _divider('Tile Animation & Shadow'),
