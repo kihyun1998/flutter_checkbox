@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../controller/checkbox_value.dart';
 import '../style/checkbox_position.dart';
 import '../style/checkbox_style.dart';
+import 'checkbox_interaction.dart';
 import 'flutter_checkbox.dart';
 
 /// A tile widget that combines a [FlutterCheckbox] with a label and an
@@ -181,15 +180,6 @@ class FlutterCheckboxTile extends StatefulWidget {
 }
 
 class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
-  bool _focused = false;
-
-  void _handleTap() {
-    if (!widget.enabled || widget.onChanged == null) return;
-    widget.onChanged!(
-      CheckboxValue.next(widget.value, tristate: widget.tristate),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -333,47 +323,34 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       tile = Padding(padding: widget.margin!, child: tile);
     }
 
-    return Semantics(
-      checked: widget.value ?? false,
-      mixed: widget.value == null,
+    // The shared seam owns semantics (the tile's label + checked/tap on one
+    // node) and keyboard activation; the tile supplies its own InkWell chrome.
+    return CheckboxInteraction(
+      value: widget.value,
+      tristate: widget.tristate,
       enabled: widget.enabled,
-      label: widget.label,
-      // Put the tap action on THIS node. `excludeSemantics` drops the
-      // descendant InkWell's semantics (to avoid a duplicate label node), but
-      // that also dropped its tap action — leaving a labelled tile that screen
-      // readers couldn't activate. Providing onTap here restores it.
-      onTap: isInteractive ? _handleTap : null,
-      excludeSemantics: widget.label != null,
-      child: FocusableActionDetector(
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        enabled: isInteractive,
-        onFocusChange: (v) => setState(() => _focused = v),
-        mouseCursor: cursor,
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-        },
-        actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              _handleTap();
-              return null;
-            },
-          ),
-        },
-        child: InkWell(
-          onTap: isInteractive ? _handleTap : null,
-          mouseCursor: cursor,
-          hoverColor: hoverColor,
-          splashColor: splashColor,
-          highlightColor: widget.highlightColor,
-          focusColor: focusColor,
-          focusNode: _focused ? widget.focusNode : null,
-          borderRadius: widget.tileBorderRadius,
-          child: tile,
-        ),
-      ),
+      onChanged: widget.onChanged,
+      semanticLabel: widget.label,
+      // Keep the custom labelWidget's semantics when the tile has no label
+      // string of its own; otherwise collapse to one node.
+      excludeChildSemantics: widget.label != null,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      mouseCursor: widget.mouseCursor,
+      builder:
+          (context, {required focused, required hovered, required activate}) {
+            return InkWell(
+              onTap: activate,
+              mouseCursor: cursor,
+              hoverColor: hoverColor,
+              splashColor: splashColor,
+              highlightColor: widget.highlightColor,
+              focusColor: focusColor,
+              focusNode: focused ? widget.focusNode : null,
+              borderRadius: widget.tileBorderRadius,
+              child: tile,
+            );
+          },
     );
   }
 }

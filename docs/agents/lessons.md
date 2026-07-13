@@ -35,6 +35,16 @@ Tests rewritten off `tester.getSemantics(f).getSemanticsData()` (`flagsCollectio
 assert state *and* tap on one node. "Unconfirmed ≠ a real defect in my diff" —
 verify a red test pre-existed before owning it.
 
+**Follow-up (#4, the `CheckboxInteraction` seam):** extracting the semantics into
+the seam re-introduced the split on the *no-label* checkbox — swapping
+`MergeSemantics` for `Semantics(onTap:) + excludeSemantics` left the child
+`InkWell`'s tap on a **second** node. The existing `getSemantics(...).hasAction(tap)`
+test passed anyway: it only checks the *found* node, not that there is exactly
+one. A probe that **counted** tap nodes across the tree caught it (`tap=2`). Rule:
+assert the *count* (`tapNodeCount == 1`), not just presence — and drive
+one-node-vs-keep-descendants with an explicit `excludeChildSemantics` flag
+(default one-node; keep descendants only when a `labelWidget` owns the name).
+
 ---
 
 ## Step 6 / 7 (surfaces, gates) — a `.pubignore` silently ships what `.gitignore` hides; a bad probe filter gives a false green

@@ -16,6 +16,24 @@ import 'package:flutter_checkbox/src/painter/checkbox_painter.dart';
 SemanticsData semanticsOf(WidgetTester tester, Finder finder) =>
     tester.getSemantics(finder).getSemanticsData();
 
+/// Counts how many semantics nodes under [finder] carry a tap action.
+///
+/// The a11y contract is exactly one — the checked state and the tap must sit on
+/// a single node. `getSemantics(...).hasAction(tap)` alone does NOT catch a
+/// split (it only checks the found node), so count them.
+int tapNodeCount(WidgetTester tester, Finder finder) {
+  int walk(SemanticsNode n) {
+    var c = n.getSemanticsData().hasAction(SemanticsAction.tap) ? 1 : 0;
+    n.visitChildren((child) {
+      c += walk(child);
+      return true;
+    });
+    return c;
+  }
+
+  return walk(tester.getSemantics(finder));
+}
+
 Widget buildApp(Widget child) {
   return MaterialApp(
     home: Scaffold(body: Center(child: child)),
@@ -497,6 +515,13 @@ void main() {
       expect(d.hasAction(SemanticsAction.tap), isTrue);
     });
 
+    testWidgets('exposes exactly one tap node (no split)', (tester) async {
+      await tester.pumpWidget(
+        buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
+      );
+      expect(tapNodeCount(tester, find.byType(FlutterCheckbox)), 1);
+    });
+
     testWidgets('Semantics when unchecked', (tester) async {
       await tester.pumpWidget(
         buildApp(FlutterCheckbox(value: false, onChanged: (_) {})),
@@ -825,6 +850,7 @@ void main() {
       expect(d.label, 'Agree');
       expect(d.flagsCollection.isChecked, CheckedState.isTrue);
       expect(d.hasAction(SemanticsAction.tap), isTrue);
+      expect(tapNodeCount(tester, find.byType(FlutterCheckboxTile)), 1);
     });
   });
 

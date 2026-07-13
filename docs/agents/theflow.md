@@ -18,6 +18,7 @@ Single Flutter package, **no external dependencies**. Barrel
 |---|---|---|
 | `widget/flutter_checkbox.dart` | the controlled checkbox — painter + animation + ring + focus/keyboard + semantics | ✅ |
 | `widget/flutter_checkbox_tile.dart` | tile layout wrapping `FlutterCheckbox` with `onChanged: null` (the tile owns interaction) | ✅ |
+| `widget/checkbox_interaction.dart` | `CheckboxInteraction` — shared seam: tristate `Semantics` (checked/tap on one node) + keyboard activation + focus/hover, exposing state via a `builder`. Both widgets adapt onto it | internal |
 | `painter/checkbox_painter.dart` | `CustomPainter` — box fill + checkmark/dash, paints at `size * scale` | internal |
 | `controller/checkbox_value.dart` | `CheckboxValue` — pure tristate machine: `next` (cycle), `transition` (change → animation), `restingProgress` (snap). No State/Ticker/context; unit-tested without a pump | internal |
 | `controller/checkbox_animation.dart` | `CheckboxAnimationMixin` — `checkAnimation` (fill) + `morphAnimation` (check ↔ dash crossfade); classifies changes via `CheckboxValue.transition`, applies the effect | internal |

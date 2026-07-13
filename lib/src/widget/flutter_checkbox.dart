@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../controller/checkbox_animation.dart';
-import '../controller/checkbox_value.dart';
 import '../painter/checkbox_painter.dart';
 import '../style/checkbox_style.dart';
+import 'checkbox_interaction.dart';
 
 /// A customizable checkbox widget with optional tristate support,
 /// keyboard navigation, and screen-reader accessibility.
@@ -109,8 +108,6 @@ class FlutterCheckbox extends StatefulWidget {
 class _FlutterCheckboxState extends State<FlutterCheckbox>
     with TickerProviderStateMixin, CheckboxAnimationMixin {
   late CheckboxStyle _resolved;
-  bool _focused = false;
-  bool _hovered = false;
 
   @override
   void initState() {
@@ -154,141 +151,113 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
     super.dispose();
   }
 
-  void _handleTap() {
-    if (!widget.enabled || widget.onChanged == null) return;
-    widget.onChanged!(
-      CheckboxValue.next(widget.value, tristate: widget.tristate),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isInteractive = widget.enabled && widget.onChanged != null;
-    // Overlay colours resolve from the style (theme defaults filled in
-    // didChangeDependencies); non-null after resolve.
-    final hoverColor = _resolved.hoverColor!;
-    final splashColor = _resolved.splashColor!;
+    // The shared seam owns semantics + keyboard activation + focus/hover;
+    // this widget supplies only the box, the ring, and its InkWell.
+    return CheckboxInteraction(
+      value: widget.value,
+      tristate: widget.tristate,
+      enabled: widget.enabled,
+      onChanged: widget.onChanged,
+      semanticLabel: widget.semanticLabel,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      mouseCursor: widget.mouseCursor,
+      builder: (context, {required focused, required hovered, required activate}) {
+        final isInteractive = activate != null;
+        final hoverColor = _resolved.hoverColor!;
+        final splashColor = _resolved.splashColor!;
 
-    // scale is applied to the actual rendered size so hit area matches visual.
-    final scaledSize = _resolved.size * _resolved.scale;
+        // scale is applied to the rendered size so hit area matches visual.
+        final scaledSize = _resolved.size * _resolved.scale;
 
-    // Checkbox box painter.
-    final box = AnimatedBuilder(
-      animation: Listenable.merge([checkAnimation, morphAnimation]),
-      builder: (context, _) {
-        return CustomPaint(
-          size: Size.square(scaledSize),
-          painter: CheckboxPainter(
-            style: _resolved,
-            progress: checkAnimation.value,
-            morphProgress: morphAnimation.value,
+        final box = AnimatedBuilder(
+          animation: Listenable.merge([checkAnimation, morphAnimation]),
+          builder: (context, _) {
+            return CustomPaint(
+              size: Size.square(scaledSize),
+              painter: CheckboxPainter(
+                style: _resolved,
+                progress: checkAnimation.value,
+                morphProgress: morphAnimation.value,
+              ),
+            );
+          },
+        );
+
+        final effectiveRingShape = _resolved.hoverRingShape ?? _resolved.shape;
+
+        // When not interactive (e.g. inside FlutterCheckboxTile), skip the ring
+        // entirely so it doesn't consume layout space in the parent tile.
+        Widget boxWithOverlay;
+        if (!isInteractive) {
+          boxWithOverlay = box;
+        } else {
+          // Fixed ring size (scaledSize + padding*2) so layout never shifts.
+          final ringSize =
+              (_resolved.size + _resolved.hoverRingPadding * 2) *
+              _resolved.scale;
+          final ringColor = focused
+              ? _resolved.focusColor!
+              : hovered
+              ? hoverColor
+              : Colors.transparent;
+
+          boxWithOverlay = SizedBox(
+            width: ringSize,
+            height: ringSize,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: ringSize,
+                  height: ringSize,
+                  decoration: BoxDecoration(
+                    color: ringColor,
+                    shape: effectiveRingShape == CheckboxShape.circle
+                        ? BoxShape.circle
+                        : BoxShape.rectangle,
+                    borderRadius: effectiveRingShape == CheckboxShape.rectangle
+                        ? BorderRadius.circular(
+                            _resolved.hoverRingBorderRadius ??
+                                _resolved.borderRadius + 2,
+                          )
+                        : null,
+                  ),
+                ),
+                box,
+              ],
+            ),
+          );
+        }
+
+        final cursor =
+            widget.mouseCursor ??
+            (isInteractive
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic);
+
+        return InkWell(
+          onTap: activate,
+          mouseCursor: cursor,
+          splashColor: splashColor,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.transparent, // hover is managed by the ring
+          customBorder: effectiveRingShape == CheckboxShape.circle
+              ? const CircleBorder()
+              : RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    _resolved.hoverRingBorderRadius ??
+                        _resolved.borderRadius + 2,
+                  ),
+                ),
+          child: Opacity(
+            opacity: widget.enabled ? 1.0 : _resolved.disabledOpacity,
+            child: boxWithOverlay,
           ),
         );
       },
-    );
-
-    final effectiveRingShape = _resolved.hoverRingShape ?? _resolved.shape;
-
-    // When not interactive (e.g. inside FlutterCheckboxTile), skip the ring
-    // entirely so it doesn't consume layout space in the parent tile.
-    Widget boxWithOverlay;
-    if (!isInteractive) {
-      boxWithOverlay = box;
-    } else {
-      // The ring SizedBox defines both the hit area and hover/focus zone.
-      // Its size is always fixed (scaledSize + padding*2) so layout never shifts.
-      final ringSize =
-          (_resolved.size + _resolved.hoverRingPadding * 2) * _resolved.scale;
-      final ringColor = _focused
-          ? _resolved.focusColor!
-          : _hovered
-          ? hoverColor
-          : Colors.transparent;
-
-      boxWithOverlay = SizedBox(
-        width: ringSize,
-        height: ringSize,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: ringSize,
-              height: ringSize,
-              decoration: BoxDecoration(
-                color: ringColor,
-                shape: effectiveRingShape == CheckboxShape.circle
-                    ? BoxShape.circle
-                    : BoxShape.rectangle,
-                borderRadius: effectiveRingShape == CheckboxShape.rectangle
-                    ? BorderRadius.circular(
-                        _resolved.hoverRingBorderRadius ??
-                            _resolved.borderRadius + 2,
-                      )
-                    : null,
-              ),
-            ),
-            box,
-          ],
-        ),
-      );
-    }
-
-    final cursor =
-        widget.mouseCursor ??
-        (isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
-
-    // MergeSemantics collapses the checked-state node and the InkWell's tap
-    // node into ONE node, so assistive tech announces "checkbox, checked,
-    // double-tap to toggle" instead of two disjoint nodes (state without a
-    // tap, tap without a state). This mirrors Flutter's own Checkbox.
-    return MergeSemantics(
-      child: Semantics(
-        checked: widget.value ?? false,
-        mixed: widget.value == null,
-        enabled: widget.enabled,
-        // `?? ''` keeps the no-label node identical to before (an explicit
-        // `label: null` would leave the node's label null instead of empty).
-        label: widget.semanticLabel ?? '',
-        child: FocusableActionDetector(
-          focusNode: widget.focusNode,
-          autofocus: widget.autofocus,
-          enabled: isInteractive,
-          onFocusChange: (v) => setState(() => _focused = v),
-          onShowHoverHighlight: (v) => setState(() => _hovered = v),
-          mouseCursor: cursor,
-          shortcuts: const {
-            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-          },
-          actions: {
-            ActivateIntent: CallbackAction<ActivateIntent>(
-              onInvoke: (_) {
-                _handleTap();
-                return null;
-              },
-            ),
-          },
-          child: InkWell(
-            onTap: isInteractive ? _handleTap : null,
-            mouseCursor: cursor,
-            splashColor: splashColor,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent, // hover is managed by the ring
-            customBorder: effectiveRingShape == CheckboxShape.circle
-                ? const CircleBorder()
-                : RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      _resolved.hoverRingBorderRadius ??
-                          _resolved.borderRadius + 2,
-                    ),
-                  ),
-            child: Opacity(
-              opacity: widget.enabled ? 1.0 : _resolved.disabledOpacity,
-              child: boxWithOverlay,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
