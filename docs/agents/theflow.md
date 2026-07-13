@@ -101,14 +101,15 @@ flutter test
 flutter pub publish --dry-run     # 0 warnings, on a clean tree
 ```
 
-- **The `flutter` environment floor is dishonest — a real defect.**
-  `pubspec.yaml` declares `flutter: ">=1.17.0"` (a `flutter create` template
-  default), but `flutter_checkbox.dart` uses `Color.withValues(alpha:)`, which is
-  **Flutter 3.27+**. A 1.17–3.26 user gets a compile error. The Dart floor
-  (`sdk: ^3.9.2`) already implies a much newer Flutter, so the two disagree. Fix
-  the floor to the real minimum (≥ 3.27, and reconcile with the Dart bound) — no
-  one else catches this: `flutter analyze` uses the *installed* SDK and pub.dev
-  does not build at the floor. Track it as an issue before touching it (Step 1).
+- **The `flutter` environment floor — fixed in 0.3.0 (was a real defect).**
+  `pubspec.yaml` now declares `flutter: ">=3.35.0"`, reconciled with the Dart
+  floor `sdk: ^3.9.2` (Dart 3.9.2 first ships with Flutter 3.35; `Color.withValues`
+  needs only 3.27, subsumed). It previously declared `>=1.17.0` (a `flutter
+  create` default), letting a 1.17–3.34 user resolve the package and then fail to
+  compile. **The standing caveat when changing any SDK floor:** no gate catches a
+  wrong floor — `flutter analyze`/`flutter test` use the *installed* SDK (here
+  3.41.9) and pub.dev does not build at the floor. Reconcile the Flutter and Dart
+  bounds by hand and reason from the real Dart→Flutter version mapping.
 - `flutter pub publish` is irreversible (retract only) — **the agent does not run
   it; the user does.**
 - The agent-skills scaffold **is adopted** — `docs/agents/issue-tracker.md`

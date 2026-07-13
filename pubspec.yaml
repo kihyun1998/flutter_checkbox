@@ -12,7 +12,9 @@ topics:
 
 environment:
   sdk: ^3.9.2
-  flutter: ">=1.17.0"
+  # Dart ^3.9.2 first ships with Flutter 3.35; keep the two floors consistent.
+  # (The package also uses Color.withValues, Flutter 3.27+, which 3.35 subsumes.)
+  flutter: ">=3.35.0"
 
 dependencies:
   flutter:

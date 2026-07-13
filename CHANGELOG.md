@@ -10,6 +10,10 @@
 - **`FlutterCheckbox`** — the checked/mixed/enabled state and the tap action were emitted on two separate semantics nodes. They are now merged (`MergeSemantics`) onto one node, so a screen reader announces and activates the checkbox as a single control.
 - **`FlutterCheckboxTile`** — a tile with a `label` excluded its descendants' semantics to avoid a duplicate label, which also dropped the tap action — leaving the tile impossible to activate with assistive tech. The tap action is now provided on the tile's own semantics node.
 
+### Fixes
+
+- **Declared Flutter floor corrected** from `>=1.17.0` (a `flutter create` default) to `>=3.35.0`, the real minimum: the package requires Dart `^3.9.2` (first shipped with Flutter 3.35) and uses `Color.withValues` (Flutter 3.27+). The old floor let incompatible SDKs resolve the package and then fail to compile.
+
 ### Notes
 
 - Disable a checkbox with `enabled: false` (unlike Flutter's `Checkbox`, `onChanged: null` only makes it non-interactive — it is the composition seam `FlutterCheckboxTile` relies on).
