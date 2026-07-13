@@ -5,8 +5,8 @@ boundary rule, proof methods, surfaces, gates. The skill holds the portable
 *method*; this file holds the *bindings*.
 
 Identity lives in `CLAUDE.md`. `CONTEXT.md` / `docs/adr/` do not exist yet
-(created lazily). No war-stories recorded yet — add `docs/agents/lessons.md`,
-indexed by theflow step, the first time a skipped step costs something.
+(created lazily). War-stories are recorded in `docs/agents/lessons.md`, indexed
+by theflow step — read it before proving a semantics or packaging change.
 
 ## Crate / module map
 
@@ -53,6 +53,17 @@ Single Flutter package, **no external dependencies**. Barrel
   cycle). Assert the `onChanged: null` path fires nothing and shows no ring.
 - **Semantics is a contract** — assert `checked` / `mixed` / `enabled` flags, not
   just the pixels. Flutter's built-in checkbox is the reference for what to set.
+  - **Do not use `matchesSemantics` in this SDK** — on any mismatch its
+    `describeMismatch` throws `Null is not a subtype of String`, hiding the real
+    cause, and it over-asserts the *absence* of unspecified actions (a newer
+    `focus` action trips it). Assert off `tester.getSemantics(f).getSemanticsData()`
+    instead: `flagsCollection.isChecked` is a `CheckedState` enum, `isEnabled` a
+    `Tristate` enum (both from `dart:ui`), and `hasAction(SemanticsAction.tap)`.
+  - **State + tap must sit on one node.** A composite control (state on the
+    `Semantics` node, tap on a child `InkWell`) reads to a screen reader as two
+    disjoint elements — assert `isChecked` *and* `hasAction(tap)` on the same
+    node (`MergeSemantics`, or `Semantics(onTap:)` when descendants are excluded).
+    See `docs/agents/lessons.md`.
 - **Animation** — pump through the duration; the check↔dash crossfade is
   `morphAnimation`, the fill is `checkAnimation`.
 - **Painter** — `shouldRepaint` must fire on style / progress change; visuals
@@ -68,8 +79,13 @@ Single Flutter package, **no external dependencies**. Barrel
 - **`CHANGELOG.md`** — pub.dev snapshots at publish; open a new version.
 - **dartdoc** — the class/field docs (e.g. the `tristate` / `onChanged: null`
   contracts) ship as the pub.dev API reference.
-- **`.pubignore`** — if present, it disables git-based file listing; the pub.dev
-  archive cannot be un-published.
+- **`.pubignore`** — **now present** (added 0.3.0). It switches pub from
+  git-based listing to a **filesystem walk that ignores `.gitignore`**, so it
+  must re-list every build/dev artifact `.gitignore` hides (`build/`,
+  `.dart_tool/`, `pubspec.lock`, …) or they ship — `build/*.dill` is tens of MB.
+  Any new exclude pattern must preserve those. Verify with `flutter pub publish
+  --dry-run` (0 warnings, ~24 KB archive). The pub.dev archive cannot be
+  un-published.
 - Glossary candidates for a future `CONTEXT.md`: *tristate* / *indeterminate*,
   *morph* (check ↔ dash), *hover ring*, *scale*.
 
@@ -94,6 +110,8 @@ flutter pub publish --dry-run     # 0 warnings, on a clean tree
   does not build at the floor. Track it as an issue before touching it (Step 1).
 - `flutter pub publish` is irreversible (retract only) — **the agent does not run
   it; the user does.**
-- Adopting the fleet's agent-skills scaffold (`docs/agents/issue-tracker.md`,
-  `triage-labels.md`, `domain.md`) and a CI workflow is a separate, unmade
-  decision — this repo has neither yet.
+- The agent-skills scaffold **is adopted** — `docs/agents/issue-tracker.md`
+  (GitHub `gh`), `triage-labels.md` (the five canonical labels), and `domain.md`
+  exist; `/to-issues` and `/triage` route through them. **CI is still absent** —
+  the local gates above are the only gates; adopting a CI workflow remains an
+  unmade decision.
