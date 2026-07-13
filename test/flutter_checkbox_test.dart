@@ -348,6 +348,21 @@ void main() {
       expect(findCheckboxPaint(), findsOneWidget);
     });
 
+    testWidgets('checkScale flows to the painter', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            style: const CheckboxStyle(checkScale: 0.5),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(resolvedStyle(tester).checkScale, 0.5);
+    });
+
     testWidgets('circle shape renders correctly', (tester) async {
       await tester.pumpWidget(
         buildApp(
@@ -916,6 +931,19 @@ void main() {
         const CheckboxStyle().copyWith(disabledOpacity: 0.5).disabledOpacity,
         0.5,
       );
+    });
+
+    test('checkScale defaults to 1.0 and is overridable', () {
+      expect(const CheckboxStyle().checkScale, 1.0);
+      expect(const CheckboxStyle(checkScale: 0.7).checkScale, 0.7);
+      expect(const CheckboxStyle().copyWith(checkScale: 1.3).checkScale, 1.3);
+    });
+
+    test('resolve preserves checkScale', () {
+      final resolved = const CheckboxStyle(
+        checkScale: 0.6,
+      ).resolve(ThemeData.light());
+      expect(resolved.checkScale, 0.6);
     });
 
     test('default values are correct', () {

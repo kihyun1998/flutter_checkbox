@@ -195,6 +195,7 @@ FlutterCheckbox(
 | `borderWidth` | `double` | `2` | Border stroke width |
 | `borderRadius` | `double` | `4` | Corner radius (rectangle only) |
 | `checkStrokeWidth` | `double` | `2.5` | Checkmark / dash stroke width |
+| `checkScale` | `double` | `1.0` | Checkmark / dash size within the box (about its centre); stroke width is independent |
 | `animationDuration` | `Duration` | `200ms` | Check/uncheck animation |
 | `animationCurve` | `Curve` | `Curves.easeInOut` | Check/uncheck curve |
 | `morphDuration` | `Duration` | `150ms` | Checkmark ↔ dash crossfade |

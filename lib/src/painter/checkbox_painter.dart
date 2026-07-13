@@ -89,9 +89,16 @@ class CheckboxPainter extends CustomPainter {
     final cx = rect.width;
     final cy = rect.height;
 
-    final p1 = Offset(cx * 0.22, cy * 0.50);
-    final p2 = Offset(cx * 0.42, cy * 0.70);
-    final p3 = Offset(cx * 0.78, cy * 0.32);
+    // Scale each point about the box centre (0.5, 0.5) by checkScale.
+    final scale = s.checkScale;
+    Offset pt(double fx, double fy) => Offset(
+      cx * (0.5 + (fx - 0.5) * scale),
+      cy * (0.5 + (fy - 0.5) * scale),
+    );
+
+    final p1 = pt(0.22, 0.50);
+    final p2 = pt(0.42, 0.70);
+    final p3 = pt(0.78, 0.32);
 
     final metric = _buildPath([p1, p2, p3]);
     final drawLength = metric.length * progress;
@@ -113,8 +120,15 @@ class CheckboxPainter extends CustomPainter {
     final cx = rect.width;
     final cy = rect.height;
 
-    final p1 = Offset(cx * 0.25, cy * 0.50);
-    final p2 = Offset(cx * 0.75, cy * 0.50);
+    // Scale each point about the box centre (0.5, 0.5) by checkScale.
+    final scale = s.checkScale;
+    Offset pt(double fx, double fy) => Offset(
+      cx * (0.5 + (fx - 0.5) * scale),
+      cy * (0.5 + (fy - 0.5) * scale),
+    );
+
+    final p1 = pt(0.25, 0.50);
+    final p2 = pt(0.75, 0.50);
 
     final metric = _buildPath([p1, p2]);
     final drawLength = metric.length * progress;

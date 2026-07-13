@@ -61,6 +61,13 @@ class CheckboxStyle {
   /// Defaults to `2.5`.
   final double checkStrokeWidth;
 
+  /// A scale for the checkmark/dash size within the box, about its centre.
+  ///
+  /// `1.0` (default) is the built-in size; `0.7` draws a smaller tick with more
+  /// padding, `1.2` a larger one. Independent of [checkStrokeWidth] — the stroke
+  /// keeps its width. Applies to both the checkmark and the indeterminate dash.
+  final double checkScale;
+
   /// Extra space added around the box for the hover/focus ring.
   ///
   /// The ring renders at `size + hoverRingPadding * 2`.
@@ -130,6 +137,7 @@ class CheckboxStyle {
     this.borderWidth = 2,
     this.borderRadius = 4,
     this.checkStrokeWidth = 2.5,
+    this.checkScale = 1.0,
     this.hoverRingPadding = 4,
     this.hoverRingShape,
     this.hoverRingBorderRadius,
@@ -160,6 +168,7 @@ class CheckboxStyle {
     double? borderWidth,
     double? borderRadius,
     double? checkStrokeWidth,
+    double? checkScale,
     double? hoverRingPadding,
     CheckboxShape? hoverRingShape,
     double? hoverRingBorderRadius,
@@ -183,6 +192,7 @@ class CheckboxStyle {
       borderWidth: borderWidth ?? this.borderWidth,
       borderRadius: borderRadius ?? this.borderRadius,
       checkStrokeWidth: checkStrokeWidth ?? this.checkStrokeWidth,
+      checkScale: checkScale ?? this.checkScale,
       hoverRingPadding: hoverRingPadding ?? this.hoverRingPadding,
       hoverRingShape: hoverRingShape ?? this.hoverRingShape,
       hoverRingBorderRadius:
@@ -213,6 +223,7 @@ class CheckboxStyle {
       borderWidth: borderWidth,
       borderRadius: borderRadius,
       checkStrokeWidth: checkStrokeWidth,
+      checkScale: checkScale,
       hoverRingPadding: hoverRingPadding,
       hoverRingShape: hoverRingShape,
       hoverRingBorderRadius: hoverRingBorderRadius,
