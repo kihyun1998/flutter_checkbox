@@ -1,3 +1,18 @@
+## 0.3.2
+
+### New features
+
+- **`CheckboxStyle.shadows`** — a `List<BoxShadow>?` that casts a drop shadow beneath the checkbox box, so a design-token shadow (shadcn's `shadow-xs`, a tweakcn theme) can reach the box itself. Defaults to `null` = no shadow, so nothing changes unless you set it. Flows through `FlutterCheckboxTile` via `checkboxStyle`; the tile's own `elevation` is a separate, unrelated Material shadow.
+
+  Four semantics worth knowing, all of them chosen to match Flutter rather than CSS, since they sit next to every other shadow in your app:
+
+  - `null` means *no shadow*, not "ask the theme" — `resolve()` leaves it alone. (`copyWith` can only overwrite a nullable field, never reset it, so a theme-supplied default could never be removed.)
+  - **Not scaled by `scale`.** Like `borderWidth`, `borderRadius` and `checkStrokeWidth`, shadow offsets and radii stay in logical pixels while `scale` resizes the box.
+  - **First entry paints underneath** — Flutter's list order, the reverse of CSS. Reverse a list pasted from CSS.
+  - **Not clipped to the box exterior** the way CSS clips an outer `box-shadow`. With the default transparent `inactiveColor` the shadow shows *through* an unchecked box; use `BoxShadow(blurStyle: BlurStyle.outer)`, or an opaque `inactiveColor`, for the CSS look.
+
+  The shadow hugs the box's *outer* edge — the outside of the border stroke — so it stays correct at any `borderWidth`. It affects painting only, never layout, so give a tile enough padding for a large blur.
+
 ## 0.3.1
 
 ### Fixes
