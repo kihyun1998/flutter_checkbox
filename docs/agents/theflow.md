@@ -93,7 +93,7 @@ root via `path: ../`). Measured, not assumed:
 | **Interaction** (focus / keyboard / hover) | Flutter SDK `FocusableActionDetector`, `InkWell`, `Actions`/`Shortcuts`, `Semantics` |
 | **Parity / semantics** | Flutter's built-in `material/checkbox.dart` — for the tristate cycle and the a11y flags (`checked`/`mixed`) it sets. Per the tie-breaker above, this one is authoritative, not advisory |
 | **Visual defaults** | shadcn/ui checkbox, as a cross-check only (#8) |
-| **API introduced-in version** | `cd /d/flutter && git log -S "<sig>"` + `git tag --contains` — the SDK floor is hand-reasoned and no gate checks it (Step 7) |
+| **API introduced-in version** | in the SDK checkout — `cd "$(dirname "$(dirname "$(which flutter)")")"` — run `git log -S "<sig>" -- <path>` then `git tag --contains <first commit>`. Derive the path; do not hardcode it (it differs per machine). The SDK floor is hand-reasoned and no gate checks it (Step 7) |
 | **Published state** | `curl -s https://pub.dev/api/packages/flutter_checkbox` |
 
 ## Step 1 — the project's own map
@@ -146,9 +146,29 @@ deliberate answer, not an unfilled slot: do not go looking for one at Step 1.
 
 ### Traps a headless run misses
 
-The whole visual layer. Ring geometry, checkmark proportion (`checkScale`), and
-morph smoothness have no assertion anywhere — the example app is the only
-instrument. A green `flutter test` says nothing about how the widget looks.
+**Draw calls are assertable; pixels are not.** `flutter_test`'s `paints` matcher
+replays a render object's display list, so geometry *is* pinnable —
+`expect(findCheckboxPaint(), paints..rrect(rrect: …, color: …)..circle(…))`
+proves shape, size, colour, and **z-order** (calls must match in order, extras
+between them are ignored). Prefer it to eyeballing whenever the claim is a
+number: it caught the `borderRadius + borderWidth / 2` outer-edge adjustment
+in #8, which no amount of looking would have.
+
+Two caveats:
+
+- **`debugDisableShadows` is `true` in every `flutter_test` run.** It nulls
+  `BoxShadow.toPaint()`'s mask filter, so blur is invisible to a headless run and
+  `BlurStyle.outer` degrades to a solid fill unless the painter clips. To assert
+  `hasMaskFilter: true`, set it `false` and restore it **inside the test body** —
+  the binding asserts painting debug vars are unset *before* `tearDown` runs.
+- **What stays example-only:** actual blur softness, how the box shadow reads
+  against the hover ring, and whether a shadow spills awkwardly out of a tile.
+  Ring geometry and morph smoothness are likewise unasserted today. A green
+  `flutter test` still says nothing about how the widget *looks*.
+
+For a visual check without a device, a throwaway `matchesGoldenFile` test with
+`--update-goldens` renders a PNG you can look at, then delete (text renders as
+blocks — `flutter_tester` has no real font).
 
 ## Step 5 — unconditional completeness triggers
 
