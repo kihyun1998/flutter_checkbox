@@ -1,16 +1,60 @@
 # theflow bindings (flutter_checkbox)
 
-Project-specific data for the `theflow` skill — module map, reference routing,
-boundary rule, proof methods, surfaces, gates. The skill holds the portable
-*method*; this file holds the *bindings*.
+Project-specific data for the `theflow` skill — reasoning bindings, module map,
+reference routing, boundary rule, proof methods, surfaces, gates. The skill holds
+the portable *method*; this file holds the *bindings*.
 
-Identity lives in `CLAUDE.md`. `CONTEXT.md` / `docs/adr/` do not exist yet
-(created lazily). War-stories are recorded in `docs/agents/lessons.md`, indexed
-by theflow step — read it before proving a semantics or packaging change.
+Identity lives in `CLAUDE.md`. `CONTEXT.md` does not exist yet (created lazily).
+War-stories are recorded in `docs/agents/lessons.md`, indexed by theflow step —
+read it before proving a semantics or packaging change.
+
+---
+
+## Reasoning bindings (project-wide)
+
+These govern every step, so they sit above the per-step sections.
+
+### Named prior art
+
+| Prior art | Cross-checked for |
+|---|---|
+| Flutter SDK `material/checkbox.dart` + `material/checkbox_list_tile.dart` | tristate cycle, a11y flags, focus/keyboard wiring, animation timing |
+| Flutter SDK `FocusableActionDetector` / `Actions` / `Shortcuts` / `Semantics` | interaction plumbing |
+| shadcn/ui checkbox | visual defaults only (border weight, radius, shadow — see #8) |
+| Sibling packages under `../` (`flutter_dropdown_button`, `flutter_table_plus`, `just_tooltip`) | house style for `*Style` value objects + `resolve(Theme)` |
+
+### Tie-breaker — when prior art and our own evidence disagree
+
+**Our design wins, except in accessibility.** This package exists *because* the
+built-in `Checkbox` cannot be customized far enough, so on visuals, public API
+shape, and internal structure the built-in is a cross-check, never an authority.
+
+**The one exception: semantics and keyboard-activation contracts — Flutter's
+built-in checkbox wins unconditionally.** What a screen reader expects is a
+framework convention, not our taste; diverging there produces a control assistive
+tech cannot operate, and `lessons.md` records that happening twice.
+
+### Deliberate-divergence list
+
+Where we do *not* follow the built-in, on purpose. Step 5's reference-free
+restatement test is checked against this list — a lens proposing the built-in's
+design back is **not** reporting a defect if it lands here.
+
+| We do | Built-in does | What decided it |
+|---|---|---|
+| `scale` scales the **rendered size and the hit area together** | 18dp fixed box; `MaterialTapTargetSize` moves only the hit area | `CLAUDE.md` invariant; issue #1 (Tick size). No ADR. |
+| `FlutterCheckboxTile` passes `onChanged: null` inward — the **tile is the single interaction surface** | `CheckboxListTile` wires `onChanged` to the inner checkbox too | `CLAUDE.md` invariant; re-confirmed while building the `CheckboxInteraction` seam (#4). No ADR. |
+| `CheckboxStyle` is a plain value object resolved once via `resolve(Theme)` — **no `WidgetStateProperty`** | `fillColor` / `overlayColor` are per-state properties | issue #5 (moved overlay colours into `CheckboxStyle.resolve`). No ADR. |
+| The **hover ring consumes layout**, and is skipped entirely when `onChanged == null` | splash/overlay paints outside layout and always exists | `CLAUDE.md` invariant. No ADR. |
+
+**Zero records exist** (`docs/adr/` is empty — see Step 6). Every row above is
+decided by a `CLAUDE.md` invariant or an issue, not by a decision record.
+
+---
 
 ## Crate / module map
 
-Single Flutter package, **no external dependencies**. Barrel
+Single Flutter package, **no runtime dependencies**. Barrel
 `lib/flutter_checkbox.dart` exports `FlutterCheckbox`, `FlutterCheckboxTile`,
 `CheckboxStyle`, `CheckboxPosition`.
 
@@ -22,8 +66,24 @@ Single Flutter package, **no external dependencies**. Barrel
 | `painter/checkbox_painter.dart` | `CustomPainter` — box fill + checkmark/dash, paints at `size * scale` | internal |
 | `controller/checkbox_value.dart` | `CheckboxValue` — pure tristate machine: `next` (cycle), `transition` (change → animation), `restingProgress` (snap). No State/Ticker/context; unit-tested without a pump | internal |
 | `controller/checkbox_animation.dart` | `CheckboxAnimationMixin` — `checkAnimation` (fill) + `morphAnimation` (check ↔ dash crossfade); classifies changes via `CheckboxValue.transition`, applies the effect | internal |
-| `style/checkbox_style.dart` | `CheckboxStyle` (size, scale, shape, borderRadius, hoverRing*) + `resolve(Theme)` | ✅ |
+| `style/checkbox_style.dart` | `CheckboxStyle` (size, scale, shape, borderRadius, checkScale, hoverRing*, overlay colours, disabledOpacity) + `resolve(Theme)` | ✅ |
 | `style/checkbox_position.dart` | `CheckboxPosition` (tile) | ✅ |
+
+### Membership — what the top-level commands do and don't reach
+
+`example/` is a **separate package** (`example/pubspec.yaml`, depending on the
+root via `path: ../`). Measured, not assumed:
+
+- `flutter analyze` **does** reach `example/lib/` — verified by planting a type
+  error in `example/lib/main.dart`; the root run reported it.
+- `flutter test` runs **`test/` only** (76 tests). **`example/` deliberately has
+  no tests.** It had one smoke test that no gate ever ran; by the time it was
+  found it had rotted red (it asserted a `'CustomCheckbox Playground'` string the
+  app stopped rendering) — deleted rather than gated. The example is a *visual*
+  instrument, proved by running it, not by asserting on it. If a test is ever
+  added back there, it needs a gate line here or it rots the same way.
+
+---
 
 ## Step 1 — reference routing table
 
@@ -31,9 +91,17 @@ Single Flutter package, **no external dependencies**. Barrel
 |---|---|
 | **Painting** | Flutter SDK `CustomPainter` / `CustomPaint` source; `shouldRepaint` semantics |
 | **Interaction** (focus / keyboard / hover) | Flutter SDK `FocusableActionDetector`, `InkWell`, `Actions`/`Shortcuts`, `Semantics` |
-| **Parity / semantics** | Flutter's built-in `material/checkbox.dart` — for tristate cycle and the a11y flags (`checked`/`mixed`) it sets |
-| **API introduced-in version** | `cd /d/flutter && git log -S "<sig>"` + `git tag --contains` — this repo already ships an API newer than its declared floor (Step 7) |
+| **Parity / semantics** | Flutter's built-in `material/checkbox.dart` — for the tristate cycle and the a11y flags (`checked`/`mixed`) it sets. Per the tie-breaker above, this one is authoritative, not advisory |
+| **Visual defaults** | shadcn/ui checkbox, as a cross-check only (#8) |
+| **API introduced-in version** | `cd /d/flutter && git log -S "<sig>"` + `git tag --contains` — the SDK floor is hand-reasoned and no gate checks it (Step 7) |
 | **Published state** | `curl -s https://pub.dev/api/packages/flutter_checkbox` |
+
+## Step 1 — the project's own map
+
+**None.** This repo keeps no dependency / territory graph — a single package with
+eight source files and no runtime dependencies does not have a graph worth
+maintaining, and the module map above is the whole territory. Recorded as a
+deliberate answer, not an unfilled slot: do not go looking for one at Step 1.
 
 ## Step 2 — boundary rule
 
@@ -49,6 +117,9 @@ Single Flutter package, **no external dependencies**. Barrel
 
 ## Step 4 — proof method per layer
 
+- **Pure logic** (`CheckboxValue`) — plain unit tests, no `pump`, no `WidgetTester`.
+  That is the point of the module; if a change needs a pump to test, it belongs
+  in the widget layer instead.
 - **Widget tests** at the public seam: pump, tap / send `space`+`enter`, and
   assert `onChanged` fired with the **right next value** (cover the full tristate
   cycle). Assert the `onChanged: null` path fires nothing and shows no ring.
@@ -60,60 +131,142 @@ Single Flutter package, **no external dependencies**. Barrel
     `focus` action trips it). Assert off `tester.getSemantics(f).getSemanticsData()`
     instead: `flagsCollection.isChecked` is a `CheckedState` enum, `isEnabled` a
     `Tristate` enum (both from `dart:ui`), and `hasAction(SemanticsAction.tap)`.
-  - **State + tap must sit on one node.** A composite control (state on the
-    `Semantics` node, tap on a child `InkWell`) reads to a screen reader as two
-    disjoint elements — assert `isChecked` *and* `hasAction(tap)` on the same
-    node (`MergeSemantics`, or `Semantics(onTap:)` when descendants are excluded).
-    See `docs/agents/lessons.md`.
+  - **State + tap must sit on one node — assert the *count*, not the presence.**
+    A composite control (state on the `Semantics` node, tap on a child `InkWell`)
+    reads to a screen reader as two disjoint elements. `getSemantics(...).hasAction(tap)`
+    only inspects the node it found, so it passes with two tap nodes in the tree;
+    walk the tree and assert `tapNodeCount == 1`. See `docs/agents/lessons.md`.
 - **Animation** — pump through the duration; the check↔dash crossfade is
   `morphAnimation`, the fill is `checkAnimation`.
 - **Painter** — `shouldRepaint` must fire on style / progress change; visuals
-  have **no golden CI**, so verify by running the example.
+  have **no golden CI**, so verify by running the example (`cd example && flutter run`).
 - **Equality** (`CheckboxStyle`) — build values at runtime and assert
   `identical(a, b)` is false *first* (Dart normalizes same-arg `const` to one
   instance, so `const a == const b` passes on identity even without `operator ==`).
+
+### Traps a headless run misses
+
+The whole visual layer. Ring geometry, checkmark proportion (`checkScale`), and
+morph smoothness have no assertion anywhere — the example app is the only
+instrument. A green `flutter test` says nothing about how the widget looks.
+
+## Step 5 — unconditional completeness triggers
+
+The completeness pass runs on these paths **regardless** of the enumeration-risk
+judgement, however small the diff looks. These are also the only paths where the
+second, *refuting* lens is worth its cost.
+
+1. **Publish / packaging** — `.pubignore`, and `pubspec.yaml`'s `environment:`
+   and `version:`. A pub.dev archive **cannot be un-published**, and both
+   controls have already shipped a defect: the `>=1.17.0` floor lie (#2) and the
+   `.pubignore` walk that nearly shipped 87 MB of `build/*.dill`.
+2. **Accessibility / semantics** — `lib/src/widget/checkbox_interaction.dart`
+   and the `Semantics` wiring in both widgets. A defect here reaches the user as
+   "the control cannot be operated at all", and the existing tests have twice
+   passed straight through one (#4 tap-node split, #7 lost `isFocusable`).
 
 ## Step 6 — behavior-describing surfaces
 
 - **`README.md`** — the "Why?" comparison to the built-in `Checkbox` and the
   feature list are a public contract; keep them in step with the API.
-- **`CHANGELOG.md`** — pub.dev snapshots at publish; open a new version.
+- **`CHANGELOG.md`** — **snapshotted by pub.dev at publish time.** Open a new
+  version section; a correction after publish does not reach the users who
+  already read it.
 - **dartdoc** — the class/field docs (e.g. the `tristate` / `onChanged: null`
   contracts) ship as the pub.dev API reference.
-- **`.pubignore`** — **now present** (added 0.3.0). It switches pub from
-  git-based listing to a **filesystem walk that ignores `.gitignore`**, so it
-  must re-list every build/dev artifact `.gitignore` hides (`build/`,
-  `.dart_tool/`, `pubspec.lock`, …) or they ship — `build/*.dill` is tens of MB.
+- **`pubspec.yaml`** — the toolchain-floor manifest (`environment:`). See Step 7.
+- **`example/lib/main.dart`** — ships in the package and renders on pub.dev; a
+  new public field that the example never demonstrates is half-shipped.
+- **`.pubignore`** — it switches pub from git-based listing to a **filesystem
+  walk that ignores `.gitignore`**, so it must re-list every build/dev artifact
+  `.gitignore` hides (`build/`, `.dart_tool/`, `pubspec.lock`, …) or they ship.
   Any new exclude pattern must preserve those. Verify with `flutter pub publish
-  --dry-run` (0 warnings, ~24 KB archive). The pub.dev archive cannot be
-  un-published.
+  --dry-run` (0 warnings, ~24 KB archive).
 - Glossary candidates for a future `CONTEXT.md`: *tristate* / *indeterminate*,
-  *morph* (check ↔ dash), *hover ring*, *scale*.
+  *morph* (check ↔ dash), *hover ring*, *scale*, *checkScale*.
+
+### Decision records — destination and what earns one
+
+- **Destination: `docs/adr/NNNN-slug.md`**, single-context at the repo root, per
+  the convention already declared in `docs/agents/domain.md`. The directory does
+  not exist yet; create it with the first promotion. `.pubignore` already excludes
+  `docs/`, so records never affect package size.
+- **Areas that already carry a record: none — 0 accepted, 0 proposed.** Check
+  this list before proposing a spine; today every area is unclaimed.
+- **Record-worthy here** (areas whose decisions have already been re-litigated,
+  so a promotion has somewhere obvious to land):
+  - **Semantics / a11y — re-decided three times already** (0.3.0 `MergeSemantics`
+    → #4 `excludeChildSemantics` on the extracted seam → #7 the lost
+    `isFocusable`/focus action). This is the standing promotion candidate: the
+    rule that would make *every* combination of label / labelWidget / tile /
+    disabled resolvable by construction has never been written down.
+  - **SDK floor policy** — decided twice in opposite directions (#2 raised it,
+    0.3.1 widened it back to `>=3.27.0`).
+- **Tracker parent/child: available.** GitHub sub-issues, with the `gh api`
+  procedure and the task-list fallback documented in `docs/agents/issue-tracker.md`
+  — so both the follow-up tree and a spine's roster have a native mechanism. No
+  project-specific exception to how a spine links or where its write-back lands.
 
 ## Step 7 — gate matrix
 
 **There is no CI.** These local gates are the only gates:
 
 ```
-flutter analyze
+flutter analyze                                    # covers lib/ AND example/lib/ (verified)
 dart format --output=none --set-exit-if-changed .
-flutter test
-flutter pub publish --dry-run     # 0 warnings, on a clean tree
+flutter test                                       # test/ only — 76 tests
+flutter pub publish --dry-run                      # 0 warnings, on a clean tree
 ```
 
-- **The `flutter` environment floor — fixed in 0.3.0 (was a real defect).**
-  `pubspec.yaml` now declares `flutter: ">=3.35.0"`, reconciled with the Dart
-  floor `sdk: ^3.9.2` (Dart 3.9.2 first ships with Flutter 3.35; `Color.withValues`
-  needs only 3.27, subsumed). It previously declared `>=1.17.0` (a `flutter
-  create` default), letting a 1.17–3.34 user resolve the package and then fail to
-  compile. **The standing caveat when changing any SDK floor:** no gate catches a
-  wrong floor — `flutter analyze`/`flutter test` use the *installed* SDK (here
-  3.41.9) and pub.dev does not build at the floor. Reconcile the Flutter and Dart
-  bounds by hand and reason from the real Dart→Flutter version mapping.
+- **No blind spot in the gate matrix** — `example/` carries no tests by design
+  (see the module map), and `flutter analyze` already covers `example/lib/`.
+  Adding a test under `example/` re-opens the hole; add a gate line with it.
+- **`flutter analyze` mutates the tree.** It resolves `./example`, which rewrites
+  the tracked `example/pubspec.lock`. Check `git status` after a gate run before
+  concluding you changed something.
+- **The `flutter` environment floor is hand-reasoned and ungated.** Current:
+  `sdk: ">=3.6.0 <4.0.0"` with `flutter: ">=3.27.0"` (widened in 0.3.1) — the
+  floor is the highest API the code actually uses, `Color.withValues`, which
+  landed in Flutter 3.27 / Dart 3.6. **The standing caveat when changing any SDK
+  floor:** no gate catches a wrong floor — `flutter analyze` / `flutter test` use
+  the *installed* SDK, and pub.dev does not build at the floor. Reconcile the
+  Flutter and Dart bounds by hand against the real Dart→Flutter version mapping.
+  A floor that is too *low* lets a user resolve the package and then fail to
+  compile (that was #2); too *high* excludes users for nothing.
 - `flutter pub publish` is irreversible (retract only) — **the agent does not run
   it; the user does.**
-- The agent-skills scaffold **is adopted** — `docs/agents/issue-tracker.md`
-  (GitHub `gh`), `triage-labels.md` (the five canonical labels), and `domain.md`
-  exist; `/to-issues` and `/triage` route through them. **CI is still absent** —
-  the local gates above are the only gates; adopting a CI workflow remains an
-  unmade decision.
+
+### Branch / PR convention
+
+**Work branch → PR → squash merge into `main`.** With no CI and no reviewer, the
+PR is the only place the diff is read as a whole, and the squash commit is the
+revert unit. Run the local gates above *before* opening the PR. Link the issue
+number in the PR body.
+
+### Release judgement
+
+**Batched, and the call is the user's.** Merges accumulate on `main`; a release
+gathers several closed issues into one version bump. The agent may *propose*
+"this is a good point to release" and the user may decline — proposing is not
+deciding, and `flutter pub publish` is run by the user either way.
+
+Pre-1.0 semver: a breaking change bumps `0.(x+1).0`; features and fixes bump
+`0.x.(y+1)`. Open the `CHANGELOG.md` section as part of the release, not per merge.
+
+### Downstream loop
+
+- **Link mechanism:** a path dependency. `example/` is *permanently* linked
+  (`flutter_checkbox: {path: ../}`), so the Step 4 full-suite round-trip is just
+  `cd example && flutter run` — no linking step. An external consumer links with
+  `dependency_overrides: {flutter_checkbox: {path: /Volumes/T7/GitHub/flutter_checkbox}}`.
+- **The consumer list is not stored here** — derive it on the spot in the
+  after-merge downstream loop (scan `../*/pubspec.yaml` for `flutter_checkbox`).
+
+## War-story index
+
+`docs/agents/lessons.md` — concrete precedents, indexed by step. Currently:
+
+- **Step 4** — `matchesSemantics` misreads itself in this SDK; state + tap must
+  share one node, and the assertion must count nodes (0.3.0, follow-up #4).
+- **Step 6 / 7** — `.pubignore` silently ships what `.gitignore` hides; a probe
+  with a bad filter gives a false green (0.3.0).
