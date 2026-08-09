@@ -122,9 +122,9 @@ class CheckboxPainter extends CustomPainter {
     // Scale each point about the box centre (0.5, 0.5) by checkScale.
     final scale = s.checkScale;
     Offset pt(double fx, double fy) => Offset(
-      cx * (0.5 + (fx - 0.5) * scale),
-      cy * (0.5 + (fy - 0.5) * scale),
-    );
+          cx * (0.5 + (fx - 0.5) * scale),
+          cy * (0.5 + (fy - 0.5) * scale),
+        );
 
     final p1 = pt(0.22, 0.50);
     final p2 = pt(0.42, 0.70);
@@ -153,9 +153,9 @@ class CheckboxPainter extends CustomPainter {
     // Scale each point about the box centre (0.5, 0.5) by checkScale.
     final scale = s.checkScale;
     Offset pt(double fx, double fy) => Offset(
-      cx * (0.5 + (fx - 0.5) * scale),
-      cy * (0.5 + (fy - 0.5) * scale),
-    );
+          cx * (0.5 + (fx - 0.5) * scale),
+          cy * (0.5 + (fy - 0.5) * scale),
+        );
 
     final p1 = pt(0.25, 0.50);
     final p2 = pt(0.75, 0.50);

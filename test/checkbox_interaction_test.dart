@@ -10,8 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_checkbox/src/widget/checkbox_interaction.dart';
 
 Widget host(Widget child) => MaterialApp(
-  home: Scaffold(body: Center(child: child)),
-);
+      home: Scaffold(body: Center(child: child)),
+    );
 
 // A minimal adapter: renders a fixed box and wires the exposed activate onto a
 // tap, so pointer taps can be exercised too.
@@ -31,15 +31,15 @@ CheckboxInteraction box({
     onChanged: onChanged,
     semanticLabel: semanticLabel,
     autofocus: autofocus,
-    builder:
-        (context, {required focused, required hovered, required activate}) {
-          spy?.call(focused, hovered, activate);
-          return GestureDetector(
-            onTap: activate,
-            behavior: HitTestBehavior.opaque,
-            child: const SizedBox(width: 40, height: 40),
-          );
-        },
+    builder: (context,
+        {required focused, required hovered, required activate}) {
+      spy?.call(focused, hovered, activate);
+      return GestureDetector(
+        onTap: activate,
+        behavior: HitTestBehavior.opaque,
+        child: const SizedBox(width: 40, height: 40),
+      );
+    },
   );
 }
 

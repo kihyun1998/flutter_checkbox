@@ -12,13 +12,12 @@ import '../controller/checkbox_value.dart';
 ///   Wire it onto the adapter's own tap surface (e.g. `InkWell.onTap`) so a
 ///   pointer tap toggles too; keyboard and assistive-tech activation are already
 ///   handled inside the seam.
-typedef CheckboxInteractionBuilder =
-    Widget Function(
-      BuildContext context, {
-      required bool focused,
-      required bool hovered,
-      required VoidCallback? activate,
-    });
+typedef CheckboxInteractionBuilder = Widget Function(
+  BuildContext context, {
+  required bool focused,
+  required bool hovered,
+  required VoidCallback? activate,
+});
 
 /// The shared activation + semantics seam for [FlutterCheckbox] and
 /// [FlutterCheckboxTile].
@@ -105,8 +104,7 @@ class _CheckboxInteractionState extends State<CheckboxInteraction> {
   @override
   Widget build(BuildContext context) {
     final activate = _isInteractive ? _activate : null;
-    final cursor =
-        widget.mouseCursor ??
+    final cursor = widget.mouseCursor ??
         (_isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
 
     return Semantics(

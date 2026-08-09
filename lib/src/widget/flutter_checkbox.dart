@@ -97,9 +97,9 @@ class FlutterCheckbox extends StatefulWidget {
     this.focusNode,
     this.mouseCursor,
   }) : assert(
-         tristate || value != null,
-         'value may only be null when tristate is true.',
-       );
+          tristate || value != null,
+          'value may only be null when tristate is true.',
+        );
 
   @override
   State<FlutterCheckbox> createState() => _FlutterCheckboxState();
@@ -164,7 +164,8 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       mouseCursor: widget.mouseCursor,
-      builder: (context, {required focused, required hovered, required activate}) {
+      builder: (context,
+          {required focused, required hovered, required activate}) {
         final isInteractive = activate != null;
         final hoverColor = _resolved.hoverColor!;
         final splashColor = _resolved.splashColor!;
@@ -195,14 +196,13 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
           boxWithOverlay = box;
         } else {
           // Fixed ring size (scaledSize + padding*2) so layout never shifts.
-          final ringSize =
-              (_resolved.size + _resolved.hoverRingPadding * 2) *
+          final ringSize = (_resolved.size + _resolved.hoverRingPadding * 2) *
               _resolved.scale;
           final ringColor = focused
               ? _resolved.focusColor!
               : hovered
-              ? hoverColor
-              : Colors.transparent;
+                  ? hoverColor
+                  : Colors.transparent;
 
           boxWithOverlay = SizedBox(
             width: ringSize,
@@ -232,8 +232,7 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
           );
         }
 
-        final cursor =
-            widget.mouseCursor ??
+        final cursor = widget.mouseCursor ??
             (isInteractive
                 ? SystemMouseCursors.click
                 : SystemMouseCursors.basic);

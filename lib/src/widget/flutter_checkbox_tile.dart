@@ -162,18 +162,18 @@ class FlutterCheckboxTile extends StatefulWidget {
     this.enabled = true,
     this.focusNode,
     this.autofocus = false,
-  }) : assert(
-         label == null || labelWidget == null,
-         'Cannot provide both label and labelWidget.',
-       ),
-       assert(
-         subtitle == null || subtitleWidget == null,
-         'Cannot provide both subtitle and subtitleWidget.',
-       ),
-       assert(
-         tristate || value != null,
-         'value may only be null when tristate is true.',
-       );
+  })  : assert(
+          label == null || labelWidget == null,
+          'Cannot provide both label and labelWidget.',
+        ),
+        assert(
+          subtitle == null || subtitleWidget == null,
+          'Cannot provide both subtitle and subtitleWidget.',
+        ),
+        assert(
+          tristate || value != null,
+          'value may only be null when tristate is true.',
+        );
 
   @override
   State<FlutterCheckboxTile> createState() => _FlutterCheckboxTileState();
@@ -192,16 +192,15 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
     final hoverColor = widget.hoverColor ?? overlay.hoverColor!;
     final splashColor = widget.splashColor ?? overlay.splashColor!;
     final focusColor = widget.focusColor ?? overlay.focusColor!;
-    final cursor =
-        widget.mouseCursor ??
+    final cursor = widget.mouseCursor ??
         (isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
 
     // Resolve tile background color based on state.
     final Color? tileColor = !widget.enabled
         ? widget.disabledColor
         : (widget.value == true
-              ? widget.selectedColor
-              : widget.backgroundColor);
+            ? widget.selectedColor
+            : widget.backgroundColor);
 
     // Inner checkbox — purely visual (onChanged: null, tile handles interaction).
     final checkbox = FlutterCheckbox(
@@ -223,31 +222,28 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       // caller's style, or a default derived from the checkbox size + theme.
       final labelWidget = hasLabel
           ? (widget.labelWidget ??
-                Text(
-                  widget.label!,
-                  style:
-                      widget.labelStyle ??
-                      TextStyle(
-                        fontSize: widget.checkboxStyle.size * 0.6,
-                        color: widget.enabled
-                            ? theme.textTheme.bodyMedium?.color
-                            : theme.disabledColor,
-                      ),
-                ))
+              Text(
+                widget.label!,
+                style: widget.labelStyle ??
+                    TextStyle(
+                      fontSize: widget.checkboxStyle.size * 0.6,
+                      color: widget.enabled
+                          ? theme.textTheme.bodyMedium?.color
+                          : theme.disabledColor,
+                    ),
+              ))
           : null;
 
       final subtitleWidget = hasSubtitle
           ? DefaultTextStyle.merge(
-              style:
-                  widget.subtitleStyle ??
+              style: widget.subtitleStyle ??
                   TextStyle(
                     fontSize: widget.checkboxStyle.size * 0.5,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
               child: Opacity(
-                opacity: widget.enabled
-                    ? 1.0
-                    : widget.checkboxStyle.disabledOpacity,
+                opacity:
+                    widget.enabled ? 1.0 : widget.checkboxStyle.disabledOpacity,
                 child: widget.subtitleWidget ?? Text(widget.subtitle!),
               ),
             )
@@ -337,20 +333,20 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       mouseCursor: widget.mouseCursor,
-      builder:
-          (context, {required focused, required hovered, required activate}) {
-            return InkWell(
-              onTap: activate,
-              mouseCursor: cursor,
-              hoverColor: hoverColor,
-              splashColor: splashColor,
-              highlightColor: widget.highlightColor,
-              focusColor: focusColor,
-              focusNode: focused ? widget.focusNode : null,
-              borderRadius: widget.tileBorderRadius,
-              child: tile,
-            );
-          },
+      builder: (context,
+          {required focused, required hovered, required activate}) {
+        return InkWell(
+          onTap: activate,
+          mouseCursor: cursor,
+          hoverColor: hoverColor,
+          splashColor: splashColor,
+          highlightColor: widget.highlightColor,
+          focusColor: focusColor,
+          focusNode: focused ? widget.focusNode : null,
+          borderRadius: widget.tileBorderRadius,
+          child: tile,
+        );
+      },
     );
   }
 }
