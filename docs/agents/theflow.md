@@ -201,7 +201,10 @@ second, *refuting* lens is worth its cost.
 ## Step 6 — behavior-describing surfaces
 
 - **`README.md`** — the "Why?" comparison to the built-in `Checkbox` and the
-  feature list are a public contract; keep them in step with the API.
+  feature list are a public contract; keep them in step with the API. **The
+  install snippet pins a version** (`flutter_checkbox: ^x.y.z`) — it is part of
+  the release bump, not of the merge that adds a feature, and nothing checks it.
+  It was left at `^0.3.1` through the whole 0.3.2 cycle.
 - **`CHANGELOG.md`** — **snapshotted by pub.dev at publish time.** Open a new
   version section; a correction after publish does not reach the users who
   already read it.
