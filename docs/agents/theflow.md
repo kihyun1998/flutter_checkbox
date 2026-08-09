@@ -136,6 +136,19 @@ deliberate answer, not an unfilled slot: do not go looking for one at Step 1.
     reads to a screen reader as two disjoint elements. `getSemantics(...).hasAction(tap)`
     only inspects the node it found, so it passes with two tap nodes in the tree;
     walk the tree and assert `tapNodeCount == 1`. See `docs/agents/lessons.md`.
+    **Count only nodes the engine ships** — skip `isMergedIntoParent` and stop at
+    `mergeAllDescendantsIntoThisNode`, or the helper reports a split no screen
+    reader can observe and rejects `MergeSemantics`, which is the framework's own
+    way of collapsing a control (#7).
+  - **Focus stops are invisible to semantics — count them separately.** A second
+    `FocusNode` nested under the seam's still resolves the same `Shortcuts`, so
+    keyboard activation works and the ring lights; the only symptom is that Tab
+    stops twice on one control. No semantics assertion can see it. Use
+    `focusStopCount(tester, finder) == 1` (walks the real `FocusManager` tree,
+    restricted to elements under the finder). Mandatory for any interaction change.
+  - **`isFocusable` is derived, not a flag** — `flagsCollection.isFocused != Tristate.none`.
+    `SemanticsFlag.isFocusable` / `hasFlag` are deprecated in this SDK and fail
+    `flutter analyze`.
 - **Animation** — pump through the duration; the check↔dash crossfade is
   `morphAnimation`, the fill is `checkAnimation`.
 - **Painter** — `shouldRepaint` must fire on style / progress change; visuals
@@ -211,15 +224,18 @@ second, *refuting* lens is worth its cost.
   the convention already declared in `docs/agents/domain.md`. The directory does
   not exist yet; create it with the first promotion. `.pubignore` already excludes
   `docs/`, so records never affect package size.
-- **Areas that already carry a record: none — 0 accepted, 0 proposed.** Check
-  this list before proposing a spine; today every area is unclaimed.
+- **Areas that already carry a record:**
+  - **Accessibility / semantics — `docs/adr/0001-one-node-one-focus.md` (accepted).**
+    Covers the semantics-node count, the accessible name, and focus-stop count for
+    every construction. A new a11y issue is a **conformance item under this record**,
+    not a sibling and not a new spine. Read its "does NOT cover" section first —
+    the `onChanged: null` / `enabled` question is deliberately still open there.
+  - SDK floor policy — still no record (decided twice in opposite directions).
 - **Record-worthy here** (areas whose decisions have already been re-litigated,
   so a promotion has somewhere obvious to land):
-  - **Semantics / a11y — re-decided three times already** (0.3.0 `MergeSemantics`
-    → #4 `excludeChildSemantics` on the extracted seam → #7 the lost
-    `isFocusable`/focus action). This is the standing promotion candidate: the
-    rule that would make *every* combination of label / labelWidget / tile /
-    disabled resolvable by construction has never been written down.
+  - ~~**Semantics / a11y — re-decided three times already**~~ — **promoted.**
+    The rule is now `docs/adr/0001-one-node-one-focus.md`; it was written off #7
+    after three triggers fired at once. No longer a candidate.
   - **SDK floor policy** — decided twice in opposite directions (#2 raised it,
     0.3.1 widened it back to `>=3.27.0`).
 - **Tracker parent/child: available.** GitHub sub-issues, with the `gh api`

@@ -28,7 +28,7 @@ Flutter's built-in `Checkbox` has limitations:
 - **Hover ring** — configurable padding, shape, and border radius, independent of the box.
 - **Box shadow** — `CheckboxStyle.shadows` takes a `List<BoxShadow>`, so a CSS/design-token shadow lands on the box itself (the tile's own `elevation` is separate).
 - **Familiar API** — the common `Checkbox` properties (`activeColor`, `checkColor`, `semanticLabel`) are available directly on the constructor, so migrating from the built-in `Checkbox` is mostly a rename.
-- **Keyboard navigation** — Space/Enter toggles; Tab navigates focus.
+- **Keyboard navigation** — Space/Enter toggles; Tab navigates focus, one stop per control.
 - **Screen reader support** — checked/mixed/enabled state and the tap action are merged onto a single `Semantics` node, so assistive tech announces (and activates) it as one control.
 - **Disabled state** — reduced opacity, tap and keyboard ignored.
 
@@ -195,7 +195,23 @@ FlutterCheckbox(
   focusNode: _myFocusNode,
   onChanged: (value) => setState(() => _isChecked = value!),
 )
+
+// A tile works the same way, and the label + subtitle are announced with it.
+FlutterCheckboxTile(
+  value: _isChecked,
+  label: 'Accept',
+  subtitle: 'terms and conditions',
+  focusNode: _tileFocusNode,
+  onChanged: (value) => setState(() => _isChecked = value!),
+)
 ```
+
+Both widgets present themselves as **one** control: a single semantics node
+carrying the checked/mixed state, the enabled state, the accessible name, the
+tap action, focusability and the focus action — and a single Tab stop. For a
+tile, the name is the text it renders (`label` or `labelWidget`, plus
+`subtitle`), so a label widget that needs its own semantics node is not
+supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-one-focus.md).
 
 ## CheckboxStyle
 
@@ -246,7 +262,7 @@ FlutterCheckbox(
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `value` | `bool?` | required | Checked state |
-| `onChanged` | `ValueChanged<bool?>?` | `null` | Callback |
+| `onChanged` | `ValueChanged<bool?>?` | `null` | Callback. `null` = read-only — the tile renders `value` but cannot be changed, and is announced as non-interactive |
 | `tristate` | `bool` | `false` | Allow `null` value |
 | `checkboxStyle` | `CheckboxStyle` | `CheckboxStyle()` | Checkbox style |
 | `label` | `String?` | `null` | Text label |

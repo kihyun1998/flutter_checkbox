@@ -17,6 +17,11 @@ class FlutterCheckboxTile extends StatefulWidget {
   final bool? value;
 
   /// Called when the user taps the tile or its label.
+  ///
+  /// `null` makes the whole tile **non-interactive** — a read-only display of
+  /// [value]. It is announced as such (not enabled, no tap action), so assistive
+  /// tech does not offer a control that cannot be operated. This is distinct
+  /// from [enabled]`: false`, which additionally dims the tile.
   final ValueChanged<bool?>? onChanged;
 
   /// Whether the indeterminate (`null`) state is allowed.
@@ -33,12 +38,19 @@ class FlutterCheckboxTile extends StatefulWidget {
   final String? label;
 
   /// Custom label widget. Cannot be used with [label].
+  ///
+  /// Its rendered text becomes the tile's accessible name — the whole tile is
+  /// merged into a single semantics node. A label widget that needs a semantics
+  /// node of its own (an embedded link, say) is therefore **not supported**: the
+  /// merge swallows it. Flutter's own `CheckboxListTile` has the same limit.
   final Widget? labelWidget;
 
   /// Text style for [label].
   final TextStyle? labelStyle;
 
   /// Secondary text shown below the label. Cannot be used with [subtitleWidget].
+  ///
+  /// Announced as part of the tile's accessible name, after the label.
   final String? subtitle;
 
   /// Custom subtitle widget. Cannot be used with [subtitle].
@@ -326,23 +338,31 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       tristate: widget.tristate,
       enabled: widget.enabled,
       onChanged: widget.onChanged,
-      semanticLabel: widget.label,
-      // Keep the custom labelWidget's semantics when the tile has no label
-      // string of its own; otherwise collapse to one node.
-      excludeChildSemantics: widget.label != null,
+      // No semantic label: the tile *renders* its name (label / labelWidget,
+      // plus the subtitle), and MergeSemantics lifts that rendered text onto
+      // the single node. Declaring it here as well would announce it twice —
+      // SemanticsConfiguration.absorb concatenates labels.
+      semanticLabel: null,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
       mouseCursor: widget.mouseCursor,
       builder: (context,
           {required focused, required hovered, required activate}) {
         return InkWell(
+          // The seam owns the focus node. The InkWell's own Focus would be a
+          // second Tab stop on one control — invisible to any semantics
+          // assertion, because it nests *under* the seam's Focus, so shortcuts
+          // still resolve and the ring still lights. Its Semantics(onTap:) is
+          // left alone on purpose: MergeSemantics folds it onto the same node,
+          // and keeping it means assistive-tech activation still ripples and
+          // fires Feedback.forTap.
+          canRequestFocus: false,
           onTap: activate,
           mouseCursor: cursor,
           hoverColor: hoverColor,
           splashColor: splashColor,
           highlightColor: widget.highlightColor,
           focusColor: focusColor,
-          focusNode: focused ? widget.focusNode : null,
           borderRadius: widget.tileBorderRadius,
           child: tile,
         );

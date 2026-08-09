@@ -47,6 +47,46 @@ one-node-vs-keep-descendants with an explicit `excludeChildSemantics` flag
 
 ---
 
+## Step 3 / 5 (test trust, completeness) — the metric that would have rejected the right answer, and two lenses that agreed from opposite stances
+
+**When:** #7 — the lost `isFocusable`, which turned out to be five defects.
+
+**What happened:** The obvious fix (declare `focusable:` on the outer node) was
+the issue's own suggestion and my candidate. Two lenses — one hunting gaps, one
+briefed to refute me — independently reached the opposite conclusion: every part
+of that fix was compensation for a `Focus` widget we did not need, because
+`InkResponse` builds its own (`ink_well.dart:1390`). Removing *that* made the
+exclusion, the owned `FocusNode` and the hand-declared focus semantics all
+unnecessary. The candidate was also measurably wrong on iOS (where `Focus`
+deliberately omits `onFocus`) and in directional navigation — both of which the
+framework already handles and we would have re-derived badly, on the one layer
+where the tie-breaker gives the framework unconditional authority.
+
+**Two things nearly went wrong quietly:**
+
+1. **`tapNodeCount` counted nodes the engine never ships.** It walked
+   `isMergedIntoParent` children, which are folded into the parent and never
+   reach the platform. Against `MergeSemantics` — the framework's own way of
+   collapsing a control — it reports a split that no screen reader can observe.
+   The metric would have produced a **false red against the correct answer**.
+   (Third instance of the `.pubignore` meta-lesson below; the first two rejected
+   nothing, this one would have.)
+2. **Two mutations did not go red.** `excludeFromSemantics: true` on the InkWell
+   turned out to be genuinely redundant once merge was in place — deleted, and
+   keeping the InkWell's semantics means AT activation still ripples. The other
+   was a **weak test**: asserting `label` *contains* the name passes happily when
+   the name is announced twice ("Accept Accept terms"). Strengthened to count
+   occurrences.
+
+**Rules earned:** count only shipped nodes; `focusStopCount` is a required proof
+method for interaction changes because no semantics assertion can see a second
+Tab stop; and when a mutation fails to go red, decide *which* of "the code is
+redundant" or "the test is weak" it is — both happened here, in the same pass.
+
+**Promoted:** `docs/adr/0001-one-node-one-focus.md`.
+
+---
+
 ## Step 1 / 5 (references, completeness) — hand-rolling what the framework already paints breaks only in *consumers'* test suites
 
 **When:** #8 — `CheckboxStyle.shadows`.

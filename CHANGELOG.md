@@ -13,6 +13,19 @@
 
   The shadow hugs the box's *outer* edge — the outside of the border stroke — so it stays correct at any `borderWidth`. It affects painting only, never layout, so give a tile enough padding for a large blur.
 
+### Accessibility fixes
+
+Five defects with one root cause: the `InkWell` driving the tap surface brought its own focus node and its own tap semantics, so every control carried a second of each. Collapsing the extra semantics node was what discarded focusability; the extra focus node was never addressed. Both widgets now present as **one** semantics node and **one** Tab stop, in every construction. Recorded in [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-one-focus.md).
+
+- **`FlutterCheckboxTile(focusNode: ...)` no longer throws.** Passing a `FocusNode` to a tile handed the *same* node to two `Focus` widgets, which asserted `'child != this'` ("Tried to make a child into a parent of itself") and left the tile **unactivatable by keyboard** — Space and Enter stopped toggling it. This is a crash reachable from the documented usage.
+- **One Tab stop per control, not two.** Both widgets were two stops, because the inner `InkWell` was independently focusable. The symptom was invisible to tests: the second stop nested under the first, so shortcuts still resolved and the focus ring still lit.
+- **The control is focusable to assistive tech again** (#7). The `isFocusable` flag and the `focus` action were dropped, so a screen reader could not see the control as focusable or move focus to it. Keyboard activation itself was unaffected, which is why this went unnoticed.
+- **A `labelWidget` tile and an unlabelled tile are one node again.** Both shipped **two** semantics nodes with **two** tap actions — a screen reader saw two disjoint elements. This was the defect issue #4 declared fixed; it was never true for these two constructions.
+- **A non-interactive control is no longer announced as enabled.** `onChanged: null` is documented as "non-interactive", but the semantics node still reported `enabled: true` with no tap action — a screen reader offered a control that could not be operated. It now reports the interactive state. (An interactive tile is unaffected: its inner checkbox is `onChanged: null` by design and does not drag the tile's own node down.)
+- **A tile's `subtitle` is now announced.** A labelled tile dropped its whole subtree from the semantics tree, so visible text was invisible to assistive tech. The tile's accessible name is now the text it renders — `label` (or `labelWidget`) followed by `subtitle`.
+
+**Behaviour change:** a tile's accessible name now comes from its rendered text rather than from `label` alone, so a tile with a subtitle announces both. A `labelWidget` that requires its own semantics node (an embedded link, for example) is out of contract — merging folds it into the single node. Flutter's own `CheckboxListTile` has the same limitation.
+
 ## 0.3.1
 
 ### Fixes

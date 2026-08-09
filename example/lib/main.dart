@@ -51,6 +51,19 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double? _hoverRingBorderRadius;
   String _shadowPreset = 'None';
 
+  // ── Focus & keyboard ───────────────────────────────────────────────────────
+  // An externally-owned FocusNode is the exact shape that used to crash a tile,
+  // and the only way to see focus behaviour without a real keyboard.
+  final FocusNode _previewFocus = FocusNode(debugLabel: 'preview');
+  bool _autofocus = false;
+  String? _semanticLabel;
+
+  @override
+  void dispose() {
+    _previewFocus.dispose();
+    super.dispose();
+  }
+
   // ── State ──────────────────────────────────────────────────────────────────
   bool _enabled = true;
   bool _tristate = false;
@@ -337,6 +350,47 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             (c) => setState(() => _checkColor = c),
           ),
 
+          _divider('Focus & Keyboard'),
+          SwitchListTile(
+            title: const Text('Autofocus'),
+            value: _autofocus,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (v) => setState(() => _autofocus = v),
+          ),
+          SwitchListTile(
+            title: const Text('Semantic label'),
+            subtitle: const Text('FlutterCheckbox only'),
+            value: _semanticLabel != null,
+            contentPadding: EdgeInsets.zero,
+            onChanged: (v) =>
+                setState(() => _semanticLabel = v ? 'I agree' : null),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _previewFocus.requestFocus,
+                  child: const Text('Focus it'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _previewFocus.unfocus,
+                  child: const Text('Unfocus'),
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Tab should reach the control in one stop, and Space/Enter '
+              'should toggle it while the ring is lit.',
+              style: TextStyle(fontSize: 11),
+            ),
+          ),
+
           _divider('State'),
           SwitchListTile(
             title: const Text('Enabled'),
@@ -504,6 +558,9 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
         tristate: _tristate,
         style: _checkboxStyle,
         enabled: _enabled,
+        focusNode: _previewFocus,
+        autofocus: _autofocus,
+        semanticLabel: _semanticLabel,
         onChanged: _onChanged,
       ),
     );
@@ -513,6 +570,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     final tile = FlutterCheckboxTile(
       value: _checked,
       tristate: _tristate,
+      focusNode: _previewFocus,
+      autofocus: _autofocus,
       checkboxStyle: _checkboxStyle,
       label: 'Check me',
       subtitle: _showSubtitle ? 'This is a subtitle line' : null,
