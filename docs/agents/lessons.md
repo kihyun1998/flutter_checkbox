@@ -47,6 +47,44 @@ one-node-vs-keep-descendants with an explicit `excludeChildSemantics` flag
 
 ---
 
+## Step 1 / 5 (references, completeness) — hand-rolling what the framework already paints breaks only in *consumers'* test suites
+
+**When:** #8 — `CheckboxStyle.shadows`.
+
+**What happened:** The issue proposed, and I initially accepted, drawing each
+`BoxShadow` by hand in `CheckboxPainter` (`toPaint()` + `shift().inflate()` +
+`drawRRect`). Reading Flutter's actual `_BoxDecorationPainter._paintShadows`
+(`painting/box_decoration.dart:448-469`) showed a debug-only branch a
+from-first-principles version has no reason to invent: when `debugDisableShadows`
+is set, `toPaint()` drops the mask filter, which turns a `BlurStyle.outer` shadow
+into a **solid fill covering the whole box** — so Flutter wraps the draw in a
+`save()/clipRect()/restore()`.
+
+`debugDisableShadows` is `true` in **every** `flutter_test` run. So the hand-rolled
+version renders correctly in the app and paints an opaque block over the checkbox
+in every consumer's own widget tests. Mutation-tested: swapping the delegation for
+the hand-rolled loop passes *every* geometry test and fails only the
+`BlurStyle.outer` one.
+
+**Fix:** `_drawShadows` builds a shadow-only `BoxDecoration` and calls
+`createBoxPainter().paint(...)` — inheriting Flutter's geometry *and* its guard.
+The one thing no option avoids: the border stroke is centred, so the box's outer
+edge is `borderRadius + borderWidth / 2`, not `borderRadius`.
+
+**Rules earned:** (1) when the framework already paints the thing, delegate — the
+value is the edge cases you would not think to enumerate, not the twelve lines
+saved. (2) A geometry-only test suite is not discriminating for a painting change;
+assert the debug-mode behaviour too. (3) The Step 1 note that a *summary* of a
+reference drops method bodies applies to first-principles derivation as well: both
+produce the happy path and neither produces the guard.
+
+**Also surfaced:** the `dart format --set-exit-if-changed` gate is red on `main`
+under Flutter 3.44.8 (5 files) — the repo was formatted by an older Dart
+formatter. Verify a red gate pre-existed before owning it (same rule as the
+`matchesSemantics` story above).
+
+---
+
 ## Step 6 / 7 (surfaces, gates) — a `.pubignore` silently ships what `.gitignore` hides; a bad probe filter gives a false green
 
 **When:** 0.3.0 — resolving the `docs/` top-level-directory publish warning.

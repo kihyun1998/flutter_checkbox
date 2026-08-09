@@ -22,10 +22,40 @@ class CheckboxPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+    _drawShadows(canvas, rect, style);
     _drawBackground(canvas, rect, style);
     if (progress > 0) {
       _drawContent(canvas, rect, style);
     }
+  }
+
+  /// Casts [CheckboxStyle.shadows] beneath the box.
+  ///
+  /// Delegates to Flutter's own shadow painter rather than hand-rolling the
+  /// blur: it owns the `shift(offset).inflate(spreadRadius)` geometry *and* the
+  /// debug-only clip that keeps [BlurStyle.outer] from turning into a solid
+  /// fill over the checkbox whenever `debugDisableShadows` is set — which it is
+  /// in every `flutter_test` run, including our consumers'. With no colour,
+  /// gradient, image or border set, the decoration paints nothing else.
+  void _drawShadows(Canvas canvas, Rect rect, CheckboxStyle s) {
+    final shadows = s.shadows;
+    if (shadows == null || shadows.isEmpty) return;
+
+    final isCircle = s.shape == CheckboxShape.circle;
+    final decoration = BoxDecoration(
+      shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+      // The border stroke is centred on the inset rect, so the box's outer
+      // visual edge is `rect` at `borderRadius + borderWidth / 2`. A circle
+      // needs no adjustment — and BoxDecoration asserts on both at once.
+      borderRadius: isCircle
+          ? null
+          : BorderRadius.circular(s.borderRadius + s.borderWidth / 2),
+      boxShadow: shadows,
+    );
+
+    final painter = decoration.createBoxPainter();
+    painter.paint(canvas, rect.topLeft, ImageConfiguration(size: rect.size));
+    painter.dispose();
   }
 
   void _drawBackground(Canvas canvas, Rect rect, CheckboxStyle s) {

@@ -49,6 +49,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double _hoverRingPadding = 4;
   CheckboxShape? _hoverRingShape;
   double? _hoverRingBorderRadius;
+  String _shadowPreset = 'None';
 
   // ── State ──────────────────────────────────────────────────────────────────
   bool _enabled = true;
@@ -82,6 +83,37 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
 
   // ── Tile shadow ────────────────────────────────────────────────────────────
   double _elevation = 0;
+
+  // ── Shadow options ─────────────────────────────────────────────────────────
+  // shadcn/ui's tokens, translated. Note CSS lists the *topmost* layer first
+  // while Flutter paints the *first* entry underneath, so 'shadow-sm' below is
+  // the reverse of the CSS it comes from.
+  static const Map<String, List<BoxShadow>?> _shadowPresets = {
+    'None': null,
+    // --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05)
+    'xs': [
+      BoxShadow(color: Color(0x0D000000), offset: Offset(0, 1), blurRadius: 2),
+    ],
+    // --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1)
+    'sm': [
+      BoxShadow(
+        color: Color(0x1A000000),
+        offset: Offset(0, 1),
+        blurRadius: 2,
+        spreadRadius: -1,
+      ),
+      BoxShadow(color: Color(0x1A000000), offset: Offset(0, 1), blurRadius: 3),
+    ],
+    // BlurStyle.outer keeps the shadow off the box interior, the way CSS does —
+    // visible here because the unchecked box is transparent by default.
+    'outer': [
+      BoxShadow(
+        color: Color(0x66000000),
+        blurRadius: 6,
+        blurStyle: BlurStyle.outer,
+      ),
+    ],
+  };
 
   // ── Color options ──────────────────────────────────────────────────────────
   static const Map<String, Color> _activeColors = {
@@ -131,6 +163,7 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     hoverRingPadding: _hoverRingPadding,
     hoverRingShape: _hoverRingShape,
     hoverRingBorderRadius: _hoverRingBorderRadius,
+    shadows: _shadowPresets[_shadowPreset],
     activeColor: _activeColor,
     checkColor: _checkColor,
     animationDuration: Duration(milliseconds: _animationDurationMs.round()),
@@ -271,6 +304,23 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             500,
             (v) => setState(() => _morphDurationMs = v),
             divisions: 10,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const SizedBox(width: 100, child: Text('Shadow')),
+              Expanded(
+                child: SegmentedButton<String>(
+                  segments: [
+                    for (final name in _shadowPresets.keys)
+                      ButtonSegment(value: name, label: Text(name)),
+                  ],
+                  selected: {_shadowPreset},
+                  onSelectionChanged: (v) =>
+                      setState(() => _shadowPreset = v.first),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           _colorPicker(

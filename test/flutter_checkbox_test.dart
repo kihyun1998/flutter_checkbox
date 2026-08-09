@@ -40,6 +40,28 @@ Widget buildApp(Widget child) {
   );
 }
 
+/// A single opaque shadow — opaque so `paints..rrect(color:)` can identify it.
+const kShadow = [
+  BoxShadow(color: Color(0xFF123456), offset: Offset(0, 1), blurRadius: 2),
+];
+
+/// The rounded rect the shadow of a default-styled box must be cast from.
+///
+/// The border stroke is *centred* on the inset rect, so the box's outer visual
+/// edge is the full rect with a radius of `borderRadius + borderWidth / 2` —
+/// not `borderRadius`. Stated independently of the implementation on purpose.
+RRect shadowRRectFor(
+  Rect box, {
+  required double borderRadius,
+  required double borderWidth,
+  Offset offset = Offset.zero,
+  double spread = 0,
+}) =>
+    RRect.fromRectAndRadius(
+      box.shift(offset).inflate(spread),
+      Radius.circular(borderRadius + borderWidth / 2),
+    );
+
 Finder findCheckboxPaint() {
   return find.descendant(
     of: find.byType(FlutterCheckbox),
@@ -416,6 +438,240 @@ void main() {
       await tester.pumpAndSettle();
       final paint = tester.widget<CustomPaint>(findCheckboxPaint());
       expect(paint.size, const Size.square(30));
+    });
+  });
+
+  group('FlutterCheckbox / Shadow', () {
+    testWidgets('shadows flow to the painter', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+              value: false, style: CheckboxStyle(shadows: kShadow)),
+        ),
+      );
+      expect(resolvedStyle(tester).shadows, kShadow);
+    });
+
+    testWidgets('casts from the box outer edge, under the box', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+              value: false, style: CheckboxStyle(shadows: kShadow)),
+        ),
+      );
+
+      // Default style: 24 box, borderWidth 2, borderRadius 4.
+      final expected = shadowRRectFor(
+        const Rect.fromLTWH(0, 0, 24, 24),
+        borderRadius: 4,
+        borderWidth: 2,
+        offset: const Offset(0, 1),
+      );
+
+      expect(
+        findCheckboxPaint(),
+        paints
+          // the shadow, first — so the box lands on top of it
+          ..rrect(rrect: expected, color: const Color(0xFF123456))
+          // then the box fill, on the inset rect at the unadjusted radius
+          ..rrect(
+            rrect: RRect.fromRectAndRadius(
+              const Rect.fromLTWH(1, 1, 22, 22),
+              const Radius.circular(4),
+            ),
+          ),
+      );
+    });
+
+    testWidgets('circle shape casts a circle', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+            value: false,
+            style: CheckboxStyle(shape: CheckboxShape.circle, shadows: kShadow),
+          ),
+        ),
+      );
+
+      // Outer edge of a stroked circle = the full rect's inscribed circle.
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..circle(x: 12, y: 13, radius: 12, color: const Color(0xFF123456)),
+      );
+    });
+
+    testWidgets('scale does not scale the shadow', (tester) async {
+      // `scale` multiplies the box footprint only — borderWidth, borderRadius
+      // and checkStrokeWidth are all unscaled, and the shadow follows them.
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+            value: false,
+            style: CheckboxStyle(scale: 2, shadows: kShadow),
+          ),
+        ),
+      );
+
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..rrect(
+            rrect: shadowRRectFor(
+              const Rect.fromLTWH(0, 0, 48, 48),
+              borderRadius: 4,
+              borderWidth: 2,
+              offset: const Offset(0, 1), // NOT (0, 2)
+            ),
+            color: const Color(0xFF123456),
+          ),
+      );
+    });
+
+    testWidgets('offset and spreadRadius are honoured', (tester) async {
+      const shadow = [
+        BoxShadow(
+          color: Color(0xFF00FF00),
+          offset: Offset(3, -2),
+          spreadRadius: 5,
+        ),
+      ];
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+              value: false, style: CheckboxStyle(shadows: shadow)),
+        ),
+      );
+
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..rrect(
+            rrect: shadowRRectFor(
+              const Rect.fromLTWH(0, 0, 24, 24),
+              borderRadius: 4,
+              borderWidth: 2,
+              offset: const Offset(3, -2),
+              spread: 5,
+            ),
+            color: const Color(0xFF00FF00),
+          ),
+      );
+    });
+
+    testWidgets('multiple shadows paint first-listed underneath', (
+      tester,
+    ) async {
+      const shadows = [
+        BoxShadow(color: Color(0xFF111111), blurRadius: 1),
+        BoxShadow(color: Color(0xFF222222), blurRadius: 8),
+      ];
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+            value: false,
+            style: CheckboxStyle(shadows: shadows),
+          ),
+        ),
+      );
+
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..rrect(color: const Color(0xFF111111))
+          ..rrect(color: const Color(0xFF222222)),
+      );
+    });
+
+    testWidgets('null shadows paint nothing extra', (tester) async {
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckbox(value: false)),
+      );
+
+      // The very first rrect is the box fill, not a shadow.
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..rrect(
+            rrect: RRect.fromRectAndRadius(
+              const Rect.fromLTWH(1, 1, 22, 22),
+              const Radius.circular(4),
+            ),
+          ),
+      );
+    });
+
+    testWidgets('BlurStyle.outer stays clipped when shadows are disabled', (
+      tester,
+    ) async {
+      // debugDisableShadows (on by default in flutter_test) drops the mask
+      // filter, which would turn an `outer` shadow into a solid fill *over* the
+      // checkbox. The guard is a clipRect — without it every consumer's own
+      // widget tests would render an opaque block.
+      expect(debugDisableShadows, isTrue);
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckbox(
+            value: false,
+            style: CheckboxStyle(
+              shadows: [
+                BoxShadow(
+                  color: Color(0xFF123456),
+                  blurRadius: 6,
+                  blurStyle: BlurStyle.outer,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        findCheckboxPaint(),
+        paints
+          ..clipRect(rect: const Rect.fromLTWH(0, 0, 24, 24))
+          ..rrect(color: const Color(0xFF123456)),
+      );
+    });
+
+    testWidgets('really blurs when shadows are enabled', (tester) async {
+      // Restored in the body, not a tearDown: the binding asserts painting
+      // debug vars are unset *before* tearDown callbacks run.
+      debugDisableShadows = false;
+      try {
+        await tester.pumpWidget(
+          buildApp(
+            const FlutterCheckbox(
+              value: false,
+              style: CheckboxStyle(shadows: kShadow),
+            ),
+          ),
+        );
+
+        expect(
+          findCheckboxPaint(),
+          paints..rrect(color: const Color(0xFF123456), hasMaskFilter: true),
+        );
+      } finally {
+        debugDisableShadows = true;
+      }
+    });
+
+    testWidgets('the tile forwards shadows to its checkbox', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            label: 'Accept',
+            checkboxStyle: CheckboxStyle(shadows: kShadow),
+          ),
+        ),
+      );
+      expect(resolvedStyle(tester).shadows, kShadow);
+      expect(
+        findCheckboxPaint(),
+        paints..rrect(color: const Color(0xFF123456)),
+      );
     });
   });
 
@@ -1055,6 +1311,26 @@ void main() {
         checkScale: 0.6,
       ).resolve(ThemeData.light());
       expect(resolved.checkScale, 0.6);
+    });
+
+    test('shadows default to null and are overridable', () {
+      expect(const CheckboxStyle().shadows, isNull);
+      expect(const CheckboxStyle(shadows: kShadow).shadows, kShadow);
+      expect(const CheckboxStyle().copyWith(shadows: kShadow).shadows, kShadow);
+    });
+
+    test('resolve preserves shadows', () {
+      final resolved = const CheckboxStyle(
+        shadows: kShadow,
+      ).resolve(ThemeData.light());
+      expect(resolved.shadows, kShadow);
+    });
+
+    test('resolve does not invent a shadow', () {
+      // `null` means *no shadow*, not "ask the theme" — the colour fields are
+      // the ones resolve() fills. copyWith cannot reset a field back to null,
+      // so a resolved default here would be permanently unremovable.
+      expect(const CheckboxStyle().resolve(ThemeData.light()).shadows, isNull);
     });
 
     test('default values are correct', () {

@@ -31,8 +31,9 @@ rendering at any size.
   never scale one without the other.
 
 `CONTEXT.md` / `docs/adr/` do not exist yet — created lazily when a term collides
-or a decision is made. There is **no CI** yet, and the `flutter` environment
-floor is currently dishonest (see `docs/agents/theflow.md` Step 7).
+or a decision is made. There is **no CI** yet: the local gate matrix in
+`docs/agents/theflow.md` Step 7 is the only gate, and the SDK floor there is
+hand-reasoned because nothing checks it.
 
 ## Agent skills
 

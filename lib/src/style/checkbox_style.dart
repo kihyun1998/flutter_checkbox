@@ -101,6 +101,36 @@ class CheckboxStyle {
   /// If `null`, defaults to `ColorScheme.primary` at 12% opacity.
   final Color? splashColor;
 
+  /// Drop shadows cast by the checkbox box, painted beneath it.
+  ///
+  /// `null` (the default) means **no shadow** — unlike the colour fields,
+  /// `null` here is not "ask the theme", so [resolve] leaves it alone. Since
+  /// [copyWith] can only overwrite a nullable field and never reset it to
+  /// `null`, a theme-supplied default would be impossible to remove.
+  ///
+  /// The shadow hugs the box's *outer* edge (the outside of the border stroke)
+  /// and follows [shape] / [borderRadius]. It affects painting only, never
+  /// layout — like a CSS `box-shadow`, it can spill outside the widget, so give
+  /// a [FlutterCheckboxTile] enough padding for it.
+  ///
+  /// Three behaviours differ from CSS and are worth knowing:
+  ///
+  /// - **Order is bottom-first.** The first entry paints underneath the rest,
+  ///   the reverse of CSS. This matches every other Flutter shadow
+  ///   ([BoxDecoration.boxShadow]), so a list pasted from CSS should be
+  ///   reversed.
+  /// - **Not clipped to the outside.** CSS clips an outer shadow to outside the
+  ///   border box; Flutter does not, so with a translucent [inactiveColor] (the
+  ///   default is [Colors.transparent]) the shadow shows *through* an unchecked
+  ///   box. Use `BoxShadow(blurStyle: BlurStyle.outer)` for the CSS look.
+  /// - **Not affected by [scale].** Like [borderWidth], [borderRadius] and
+  ///   [checkStrokeWidth], shadow offsets and radii stay in logical pixels
+  ///   while [scale] resizes the box.
+  ///
+  /// The list is used as given and never copied — do not mutate it after
+  /// construction, or the change will not repaint.
+  final List<BoxShadow>? shadows;
+
   /// The opacity applied when the checkbox is disabled (`enabled: false`).
   ///
   /// Defaults to `0.4`.
@@ -144,6 +174,7 @@ class CheckboxStyle {
     this.hoverColor,
     this.focusColor,
     this.splashColor,
+    this.shadows,
     this.disabledOpacity = 0.4,
     this.animationDuration = const Duration(milliseconds: 200),
     this.animationCurve = Curves.easeInOut,
@@ -175,6 +206,7 @@ class CheckboxStyle {
     Color? hoverColor,
     Color? focusColor,
     Color? splashColor,
+    List<BoxShadow>? shadows,
     double? disabledOpacity,
     Duration? animationDuration,
     Curve? animationCurve,
@@ -200,6 +232,7 @@ class CheckboxStyle {
       hoverColor: hoverColor ?? this.hoverColor,
       focusColor: focusColor ?? this.focusColor,
       splashColor: splashColor ?? this.splashColor,
+      shadows: shadows ?? this.shadows,
       disabledOpacity: disabledOpacity ?? this.disabledOpacity,
       animationDuration: animationDuration ?? this.animationDuration,
       animationCurve: animationCurve ?? this.animationCurve,
@@ -230,6 +263,7 @@ class CheckboxStyle {
       hoverColor: hoverColor ?? primary.withValues(alpha: 0.08),
       focusColor: focusColor ?? primary.withValues(alpha: 0.12),
       splashColor: splashColor ?? primary.withValues(alpha: 0.12),
+      shadows: shadows,
       disabledOpacity: disabledOpacity,
       animationDuration: animationDuration,
       animationCurve: animationCurve,

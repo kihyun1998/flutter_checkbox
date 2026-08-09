@@ -22,10 +22,11 @@ Flutter's built-in `Checkbox` has limitations:
 
 - **Tristate** — `null` value renders an animated indeterminate dash with crossfade.
 - **Extended hover area** — hit/hover zone covers the full ring area, not just the box.
-- **`FlutterCheckboxTile`** — label, subtitle, tile background, border, shadow, animations.
+- **`FlutterCheckboxTile`** — label, subtitle, tile background, border, `elevation`, animations.
 - **Exact size control** — `CheckboxStyle.size` in logical pixels, `scale` for proportional resize.
 - **Shape options** — `CheckboxShape.rectangle` or `CheckboxShape.circle`.
 - **Hover ring** — configurable padding, shape, and border radius, independent of the box.
+- **Box shadow** — `CheckboxStyle.shadows` takes a `List<BoxShadow>`, so a CSS/design-token shadow lands on the box itself (the tile's own `elevation` is separate).
 - **Familiar API** — the common `Checkbox` properties (`activeColor`, `checkColor`, `semanticLabel`) are available directly on the constructor, so migrating from the built-in `Checkbox` is mostly a rename.
 - **Keyboard navigation** — Space/Enter toggles; Tab navigates focus.
 - **Screen reader support** — checked/mixed/enabled state and the tap action are merged onto a single `Semantics` node, so assistive tech announces (and activates) it as one control.
@@ -221,6 +222,7 @@ FlutterCheckbox(
 | `hoverColor` | `Color?` | `primary` @ 8% | Ring overlay while hovered |
 | `focusColor` | `Color?` | `primary` @ 12% | Ring overlay while focused |
 | `splashColor` | `Color?` | `primary` @ 12% | Ripple colour on tap |
+| `shadows` | `List<BoxShadow>?` | `null` (none) | Drop shadows cast by the box. Painting only, never layout. First entry paints underneath (CSS is the reverse), and it is not clipped to the box exterior — use `BlurStyle.outer` for the CSS look. Unaffected by `scale` |
 | `disabledOpacity` | `double` | `0.4` | Opacity when `enabled: false` |
 
 ## FlutterCheckbox
@@ -270,7 +272,7 @@ FlutterCheckbox(
 | `splashColor` | `Color?` | `primary @ 12%` | Tap ripple |
 | `highlightColor` | `Color?` | `null` | Held tap highlight |
 | `focusColor` | `Color?` | `primary @ 12%` | Focus overlay |
-| `elevation` | `double` | `0` | Shadow elevation |
+| `elevation` | `double` | `0` | Material elevation of the whole tile — the box's own drop shadow is `CheckboxStyle.shadows` |
 | `enabled` | `bool` | `true` | Interactive state |
 | `autofocus` | `bool` | `false` | Request focus on first build |
 | `focusNode` | `FocusNode?` | `null` | External focus control |
