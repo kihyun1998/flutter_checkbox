@@ -262,7 +262,7 @@ supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-on
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `value` | `bool?` | required | Checked state |
-| `onChanged` | `ValueChanged<bool?>?` | `null` | Callback |
+| `onChanged` | `ValueChanged<bool?>?` | `null` | Callback. `null` = read-only — the tile renders `value` but cannot be changed, and is announced as non-interactive |
 | `tristate` | `bool` | `false` | Allow `null` value |
 | `checkboxStyle` | `CheckboxStyle` | `CheckboxStyle()` | Checkbox style |
 | `label` | `String?` | `null` | Text label |
