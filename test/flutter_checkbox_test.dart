@@ -1018,6 +1018,42 @@ void main() {
     });
   });
 
+  group('A11y contract / non-interactive is announced as such', () {
+    testWidgets('a read-only tile is not announced as enabled', (tester) async {
+      // `onChanged: null` is a documented contract — "non-interactive"
+      // (CLAUDE.md). Announcing it as enabled tells a screen-reader user they
+      // can act on something they cannot.
+      await tester.pumpWidget(
+        buildApp(const FlutterCheckboxTile(value: true, label: 'Accept')),
+      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      expect(d.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(d.hasAction(SemanticsAction.tap), isFalse);
+    });
+
+    testWidgets('a read-only checkbox is not announced as enabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildApp(const FlutterCheckbox(value: true)));
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(d.hasAction(SemanticsAction.tap), isFalse);
+    });
+
+    testWidgets('an interactive tile stays enabled', (tester) async {
+      // Guards the merge: the tile's inner FlutterCheckbox is `onChanged: null`
+      // by design, so its node must not drag the tile's own node to disabled.
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(value: true, label: 'Accept', onChanged: (_) {}),
+        ),
+      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      expect(d.flagsCollection.isEnabled, Tristate.isTrue);
+      expect(d.hasAction(SemanticsAction.tap), isTrue);
+    });
+  });
+
   group('A11y contract / one focus stop', () {
     testWidgets('a checkbox is a single Tab stop', (tester) async {
       await tester.pumpWidget(

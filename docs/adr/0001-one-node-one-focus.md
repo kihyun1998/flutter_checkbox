@@ -65,7 +65,7 @@ merge (`widgets/toggleable.dart:378-395`, `material/checkbox.dart:615`).
 > exactly one stop to the keyboard. Every piece of text the user can see inside
 > it is part of that node's name. Nothing inside it is separately focusable.**
 
-Four construction rules implement the invariant. None of them is a
+Five construction rules implement the invariant. None of them is a
 per-construction predicate — that is the point.
 
 **R1 — Merge, never exclude.** The seam wraps its `Semantics` in
@@ -99,6 +99,14 @@ on the outer node — hand-rolls what the reference already publishes, on the on
 layer where `theflow.md`'s tie-breaker gives the reference **unconditional**
 authority. It was measured wrong on iOS and in directional navigation.
 
+**R5 — Non-interactive is announced as non-interactive.** The node's `enabled`
+state is `interactive`, not the `enabled` constructor flag. `onChanged: null` is
+a documented contract ("non-interactive"), so a control nobody can operate must
+not be announced as operable — a screen-reader user would be told they can act
+and then nothing happens. Measured: the tile's inner `FlutterCheckbox` is
+`onChanged: null` by design, and under R1 its node does **not** drag an
+interactive tile's own node to disabled.
+
 ## How every combination resolves
 
 For `{bare, tile} × {label, labelWidget, neither} × {enabled, disabled} ×
@@ -113,7 +121,8 @@ by an assert — every quantity derives from one boolean,
 | `isFocusable` / focus action | `interactive ? 1 : 0` | no |
 | keyboard focus stops | `interactive ? 1 : 0` | no |
 | node name | rendered text if any, else `semanticLabel`, else `''` | **yes — only here** |
-| `checked` / `mixed` / `enabled` | from `value` / `enabled` | no |
+| `enabled` state | `interactive` | no |
+| `checked` / `mixed` | from `value` | no |
 
 The label shape influences exactly one row. That is why no predicate keyed on
 `label` or `labelWidget` can be correct: it was being used to decide rows it has
@@ -149,9 +158,11 @@ State this explicitly so the next pass does not read neighbours as decided.
   decision; it does not reopen it, and it must not be read as deciding that
   `onChanged: null` means *disabled*. `FlutterCheckbox.enabled` keeps that
   distinction.
-- **A tile with `onChanged: null` reporting `enabled: true` with no tap action.**
-  Measured, still true after this change, and deliberately left open — it is a
-  question about what `enabled` means, not about node or focus counts.
+- **How a read-only control is *distinguished* from a disabled one.** R5 makes
+  both announce `enabled: false`, which is honest (neither can be operated) and
+  matches the built-in. Whether the read-only case deserves the separate
+  `SemanticsProperties.readOnly` encoding is not decided here — only that
+  claiming `enabled: true` was wrong.
 - **Visual focus indication** — ring colour, geometry, layout consumption and the
   `scale` interaction stay "our design wins" territory.
 - **Whether `FlutterCheckboxTile` should gain its own `semanticLabel` override.**

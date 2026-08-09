@@ -17,6 +17,11 @@ class FlutterCheckboxTile extends StatefulWidget {
   final bool? value;
 
   /// Called when the user taps the tile or its label.
+  ///
+  /// `null` makes the whole tile **non-interactive** — a read-only display of
+  /// [value]. It is announced as such (not enabled, no tap action), so assistive
+  /// tech does not offer a control that cannot be operated. This is distinct
+  /// from [enabled]`: false`, which additionally dims the tile.
   final ValueChanged<bool?>? onChanged;
 
   /// Whether the indeterminate (`null`) state is allowed.

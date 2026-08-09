@@ -109,7 +109,7 @@ class _CheckboxInteractionState extends State<CheckboxInteraction> {
       child: Semantics(
         checked: widget.value ?? false,
         mixed: widget.value == null,
-        enabled: widget.enabled,
+        enabled: _isInteractive,
         // Empty (not null) keeps an unlabelled node's label as '' — see the
         // matchesSemantics lesson.
         label: widget.semanticLabel ?? '',
