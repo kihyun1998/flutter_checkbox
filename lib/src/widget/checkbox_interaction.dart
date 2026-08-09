@@ -49,14 +49,6 @@ class CheckboxInteraction extends StatefulWidget {
   /// An accessibility label for the control.
   final String? semanticLabel;
 
-  /// Whether to drop descendant semantics so this seam is a single node.
-  ///
-  /// Defaults to `true` — the checked state and the tap action must live on
-  /// one node (a screen reader should see one control, not a checked node plus
-  /// a separate tappable node). Set to `false` only when a descendant provides
-  /// the accessible name itself (e.g. the tile's custom `labelWidget`).
-  final bool excludeChildSemantics;
-
   /// Focus control for keyboard activation.
   final FocusNode? focusNode;
 
@@ -77,7 +69,6 @@ class CheckboxInteraction extends StatefulWidget {
     this.enabled = true,
     required this.onChanged,
     this.semanticLabel,
-    this.excludeChildSemantics = true,
     this.focusNode,
     this.autofocus = false,
     this.mouseCursor,
@@ -107,39 +98,47 @@ class _CheckboxInteractionState extends State<CheckboxInteraction> {
     final cursor = widget.mouseCursor ??
         (_isInteractive ? SystemMouseCursors.click : SystemMouseCursors.basic);
 
-    return Semantics(
-      checked: widget.value ?? false,
-      mixed: widget.value == null,
-      enabled: widget.enabled,
-      // Empty (not null) keeps an unlabelled node's label as '' — see the
-      // matchesSemantics lesson.
-      label: widget.semanticLabel ?? '',
-      onTap: activate,
-      excludeSemantics: widget.excludeChildSemantics,
-      child: FocusableActionDetector(
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        enabled: _isInteractive,
-        onFocusChange: (v) => setState(() => _focused = v),
-        onShowHoverHighlight: (v) => setState(() => _hovered = v),
-        mouseCursor: cursor,
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-        },
-        actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) {
-              _activate();
-              return null;
-            },
+    // Merge, never exclude. Merging collapses 0, 1 or N annotated descendants
+    // into one node identically, so it needs no predicate — and it *keeps* what
+    // the descendants contribute (the inner Focus publishes isFocusable, the
+    // focus action and the focused state) instead of discarding it. Excluding
+    // is arity-sensitive, which is why it needed a per-construction flag and
+    // still dropped focusability and the tile's subtitle.
+    // See docs/adr/0001-one-node-one-focus.md.
+    return MergeSemantics(
+      child: Semantics(
+        checked: widget.value ?? false,
+        mixed: widget.value == null,
+        enabled: widget.enabled,
+        // Empty (not null) keeps an unlabelled node's label as '' — see the
+        // matchesSemantics lesson.
+        label: widget.semanticLabel ?? '',
+        onTap: activate,
+        child: FocusableActionDetector(
+          focusNode: widget.focusNode,
+          autofocus: widget.autofocus,
+          enabled: _isInteractive,
+          onFocusChange: (v) => setState(() => _focused = v),
+          onShowHoverHighlight: (v) => setState(() => _hovered = v),
+          mouseCursor: cursor,
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          },
+          actions: {
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) {
+                _activate();
+                return null;
+              },
+            ),
+          },
+          child: widget.builder(
+            context,
+            focused: _focused,
+            hovered: _hovered,
+            activate: activate,
           ),
-        },
-        child: widget.builder(
-          context,
-          focused: _focused,
-          hovered: _hovered,
-          activate: activate,
         ),
       ),
     );

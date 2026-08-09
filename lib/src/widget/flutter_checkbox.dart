@@ -238,6 +238,14 @@ class _FlutterCheckboxState extends State<FlutterCheckbox>
                 : SystemMouseCursors.basic);
 
         return InkWell(
+          // The seam owns the focus node. The InkWell's own Focus would be a
+          // second Tab stop on one control — invisible to any semantics
+          // assertion, because it nests *under* the seam's Focus, so shortcuts
+          // still resolve and the ring still lights. Its Semantics(onTap:) is
+          // left alone on purpose: MergeSemantics folds it onto the same node,
+          // and keeping it means assistive-tech activation still ripples and
+          // fires Feedback.forTap.
+          canRequestFocus: false,
           onTap: activate,
           mouseCursor: cursor,
           splashColor: splashColor,

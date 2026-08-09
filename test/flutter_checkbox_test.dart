@@ -21,9 +21,17 @@ SemanticsData semanticsOf(WidgetTester tester, Finder finder) =>
 /// The a11y contract is exactly one — the checked state and the tap must sit on
 /// a single node. `getSemantics(...).hasAction(tap)` alone does NOT catch a
 /// split (it only checks the found node), so count them.
+///
+/// Counts only nodes the engine actually **ships**. A node with
+/// `isMergedIntoParent` is folded into its parent's data and never reaches the
+/// platform, so counting it reports a split that no screen reader can observe —
+/// which would reject `MergeSemantics`, the framework's own way of collapsing a
+/// control. Stop at `mergeAllDescendantsIntoThisNode` for the same reason.
 int tapNodeCount(WidgetTester tester, Finder finder) {
   int walk(SemanticsNode n) {
+    if (n.isMergedIntoParent) return 0;
     var c = n.getSemanticsData().hasAction(SemanticsAction.tap) ? 1 : 0;
+    if (n.mergeAllDescendantsIntoThisNode) return c;
     n.visitChildren((child) {
       c += walk(child);
       return true;
@@ -33,6 +41,50 @@ int tapNodeCount(WidgetTester tester, Finder finder) {
 
   return walk(tester.getSemantics(finder));
 }
+
+/// Counts the keyboard focus stops **inside** [finder].
+///
+/// The contract is one stop per control. Nothing in the semantics tree can see
+/// this: a second focus node nested under the first still resolves the same
+/// `Shortcuts`, so space/enter keep working and the ring keeps lighting — the
+/// only visible symptom is that Tab stops twice on one checkbox. Walk the real
+/// [FocusManager] tree instead, restricted to elements under [finder].
+int focusStopCount(WidgetTester tester, Finder finder) {
+  final root = tester.element(finder);
+  final subtree = <Element>{};
+  void collect(Element e) {
+    subtree.add(e);
+    e.visitChildren(collect);
+  }
+
+  collect(root);
+
+  var n = 0;
+  void walk(FocusNode f) {
+    final ctx = f.context;
+    if (f.canRequestFocus &&
+        !f.skipTraversal &&
+        ctx is Element &&
+        subtree.contains(ctx)) {
+      n++;
+    }
+    for (final child in f.children) {
+      walk(child);
+    }
+  }
+
+  for (final child in FocusScope.of(root).children) {
+    walk(child);
+  }
+  return n;
+}
+
+/// Whether the node declares focusability.
+///
+/// Derived, not a flag: `isFocusable` is `isFocused != Tristate.none`, so a node
+/// that declares no focused state at all is not focusable.
+bool declaresFocusable(SemanticsData d) =>
+    d.flagsCollection.isFocused != Tristate.none;
 
 Widget buildApp(Widget child) {
   return MaterialApp(
@@ -863,6 +915,169 @@ void main() {
 
       final d = semanticsOf(tester, find.byType(FlutterCheckbox));
       expect(d.flagsCollection.isChecked, CheckedState.mixed);
+    });
+  });
+
+  // One node to assistive tech, one stop to the keyboard — for every
+  // construction. See docs/adr/0001-one-node-one-focus.md.
+  group('A11y contract / one node', () {
+    testWidgets('checkbox is focusable and exposes the focus action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(
+            value: true,
+            onChanged: (_) {},
+            semanticLabel: 'Accept',
+          ),
+        ),
+      );
+
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(d.label, 'Accept');
+      expect(declaresFocusable(d), isTrue);
+      expect(d.hasAction(SemanticsAction.focus), isTrue);
+      expect(tapNodeCount(tester, find.byType(FlutterCheckbox)), 1);
+    });
+
+    testWidgets('a bare checkbox is focusable too', (tester) async {
+      await tester.pumpWidget(
+        buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
+      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(declaresFocusable(d), isTrue);
+      expect(d.hasAction(SemanticsAction.focus), isTrue);
+    });
+
+    testWidgets('a disabled checkbox is neither focusable nor tappable', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckbox(value: true, onChanged: (_) {}, enabled: false),
+        ),
+      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckbox));
+      expect(declaresFocusable(d), isFalse);
+      expect(d.hasAction(SemanticsAction.focus), isFalse);
+      expect(d.hasAction(SemanticsAction.tap), isFalse);
+    });
+
+    testWidgets('an unlabelled tile is one node, not two', (tester) async {
+      await tester.pumpWidget(
+        buildApp(FlutterCheckboxTile(value: true, onChanged: (_) {})),
+      );
+      expect(tapNodeCount(tester, find.byType(FlutterCheckboxTile)), 1);
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      expect(declaresFocusable(d), isTrue);
+    });
+
+    testWidgets('a labelWidget tile is one node and the widget names it', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: true,
+            onChanged: (_) {},
+            labelWidget: const Text('Accept terms'),
+          ),
+        ),
+      );
+      expect(tapNodeCount(tester, find.byType(FlutterCheckboxTile)), 1);
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      expect(d.label, contains('Accept terms'));
+      expect(declaresFocusable(d), isTrue);
+    });
+
+    testWidgets('a subtitle is announced, not dropped', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: true,
+            onChanged: (_) {},
+            label: 'Accept',
+            subtitle: 'terms and conditions',
+          ),
+        ),
+      );
+      final d = semanticsOf(tester, find.byType(FlutterCheckboxTile));
+      // Visible text inside the control must reach assistive tech.
+      expect(d.label, contains('Accept'));
+      expect(d.label, contains('terms and conditions'));
+      // ...and exactly once. The tile renders its name, so declaring it as a
+      // semanticLabel too makes absorb concatenate it twice ("Accept Accept
+      // terms and conditions"), which `contains` alone would not catch.
+      expect(
+        RegExp('Accept').allMatches(d.label).length,
+        1,
+        reason: 'the name must not be announced twice',
+      );
+      expect(tapNodeCount(tester, find.byType(FlutterCheckboxTile)), 1);
+    });
+  });
+
+  group('A11y contract / one focus stop', () {
+    testWidgets('a checkbox is a single Tab stop', (tester) async {
+      await tester.pumpWidget(
+        buildApp(FlutterCheckbox(value: true, onChanged: (_) {})),
+      );
+      expect(focusStopCount(tester, find.byType(FlutterCheckbox)), 1);
+    });
+
+    testWidgets('a tile is a single Tab stop', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(value: true, onChanged: (_) {}, label: 'A'),
+        ),
+      );
+      expect(focusStopCount(tester, find.byType(FlutterCheckboxTile)), 1);
+    });
+
+    testWidgets('a tile accepts a caller FocusNode without reparenting it', (
+      tester,
+    ) async {
+      // Regression: the tile used to hand the SAME node to both its own
+      // FocusableActionDetector and the InkWell's internal Focus, which threw
+      // 'child != this' and left the control unactivatable by keyboard.
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      bool? value = false;
+
+      await tester.pumpWidget(
+        buildApp(
+          StatefulBuilder(
+            builder: (context, setState) => FlutterCheckboxTile(
+              value: value,
+              label: 'Accept',
+              focusNode: node,
+              onChanged: (v) => setState(() => value = v),
+            ),
+          ),
+        ),
+      );
+
+      // Fixed-count pumps, never pumpAndSettle: while this is red the focus
+      // tree is left inconsistent and settling would spin forever.
+      node.requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+
+      // Drain every pending exception, not just the first — the reparenting
+      // assertion fires on each rebuild, and anything left behind is reported
+      // against whichever test runs next.
+      final errors = <Object>[];
+      for (Object? e = tester.takeException();
+          e != null;
+          e = tester.takeException()) {
+        errors.add(e);
+      }
+
+      expect(errors, isEmpty,
+          reason: 'a caller FocusNode must not be reparented');
+      expect(value, isTrue, reason: 'keyboard activation must still work');
     });
   });
 
