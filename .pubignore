@@ -17,6 +17,8 @@ example/.dart_tool/
 # Agent / contributor tooling — tracked in git, not part of the package
 docs/
 CLAUDE.md
+scripts/
+.checkup.json
 
 # Example app: keep the Dart sources (pub.dev renders them); drop the
 # per-platform build scaffolding that only matters when running it locally.

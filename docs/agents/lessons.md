@@ -1,9 +1,9 @@
-# theflow lessons (flutter_checkbox)
+# Lessons (flutter_checkbox)
 
-War-stories indexed by theflow step. Each entry is a concrete precedent where a
-step (or a skipped step) cost something real — they keep the bindings in
-`theflow.md` from reading as abstractions. Add one the first time a rule earns
-its teeth.
+War-stories: concrete precedents where a step, or a skipped step, cost something
+real. Entries are indexed by the step of the retired `theflow` skill they were
+written under. The traps they earned now live in the territory notes under
+`docs/map/`, and these entries are the evidence behind them.
 
 ---
 
