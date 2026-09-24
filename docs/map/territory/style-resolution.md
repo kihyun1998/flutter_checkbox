@@ -9,26 +9,39 @@ reads the resolved copy.
 
 ## Governing decisions
 
-**None.** "A plain value object resolved once, no `WidgetStateProperty`" came
-from #5 (moving the overlay colours into `resolve`). That is an issue, not a record.
+- [ADR 0002 — The default check colour follows the fill](../../adr/0002-default-check-colour-follows-the-fill.md#decision).
+  It governs the defaults that follow the fill: `checkColor` and the three
+  overlay colours. Read its
+  [does-not-cover list](../../adr/0002-default-check-colour-follows-the-fill.md#what-this-record-does-not-cover)
+  before extending it further.
+
+The rest has no record. "A plain value object resolved once, no
+`WidgetStateProperty`" came from #5 (moving the overlay colours into `resolve`),
+which is an issue, not a record.
 
 ## Design model
 
-Read from the source; nothing above it records the rules.
+Read from the source, apart from the colours that follow the fill, which ADR
+0002 records.
 
-- **Two kinds of `null`.** For colour fields, `null` means "ask the theme".
-  `resolve` fills them. For `shadows`, `null` means *none*, and `resolve` leaves
-  it alone, because `copyWith` cannot reset a field to `null` and a theme default
-  could never be removed.
+- **Two kinds of `null`.** For colour fields, `null` means "derive it":
+  `resolve` fills them from the theme, and `checkColor` and the overlays from
+  the fill. For
+  `shadows`, `null` means *none*, and `resolve` leaves it alone, because
+  `copyWith` cannot reset a field to `null` and a theme default could never be
+  removed.
 - **`copyWith` can only overwrite.** `FlutterCheckbox` depends on that: it layers
   its top-level `activeColor` / `checkColor` over `style` through `copyWith`, and
   the top-level value wins.
-- **Overlay defaults are `primary` at fixed alphas.** hover, focus and splash
-  resolve here. The tile reads them from here too (#5), so the constants have one
-  home.
-- **`checkColor` does not follow the theme.** It defaults to `Colors.white`
-  while `activeColor` follows `primary`. The pair's contrast is not guaranteed
-  (#13).
+- **Overlay defaults are the fill at fixed alphas.** Hover, focus and splash
+  resolve here from `activeColor ?? primary`, the same colour the box is filled
+  with (ADR 0002). The tile reads them from here too (#5), so the constants have
+  one home.
+- **The default check follows the fill.** `_defaultCheckColor` returns
+  `onPrimary` on the theme's own fill, and white or black by
+  `ThemeData.estimateBrightnessForColor` on a caller's `activeColor`. It can be
+  decided inside `resolve` because `FlutterCheckbox` merges its top-level
+  `activeColor` into the style first.
 - **No `operator ==`.** Every `style != old.style` in `lib/` compares identity.
   A parent that builds a new `CheckboxStyle(...)` each frame re-resolves and
   repaints each frame. That is correct but not free.
@@ -39,7 +52,7 @@ Read from the source; nothing above it records the rules.
 ## Code
 
 - `lib/src/style/checkbox_style.dart` — `CheckboxStyle`, `CheckboxShape`,
-  `copyWith`, `resolve`
+  `copyWith`, `resolve`, `_defaultCheckColor`
 - `lib/src/widget/flutter_checkbox.dart` — `_updateResolvedStyle`,
   `didChangeDependencies`
 - `lib/src/widget/flutter_checkbox_tile.dart` — `_FlutterCheckboxTileState`,
@@ -47,7 +60,11 @@ Read from the source; nothing above it records the rules.
 
 ## Reference behaviour
 
-**None.**
+- The check colour was compared with Flutter's M3 checkbox at SDK
+  `6655482ec06` (`_CheckboxDefaultsM3.checkColor` in `material/checkbox.dart`
+  returns `onPrimary` whatever the fill), and with shadcn's `checkbox.tsx`. The
+  comparison and why it was not followed are in
+  [ADR 0002](../../adr/0002-default-check-colour-follows-the-fill.md#what-it-was-decided-on).
 
 ## Cross-cutting invariants
 
@@ -67,8 +84,12 @@ Read from the source; nothing above it records the rules.
 
 ## Known holes / open
 
-- **The default check is near-invisible on a light `primary`**, which every dark
-  M3 theme has. Tracked: #13.
+- **Mid-tone custom fills keep a white check at about 3:1** (blue 3.1, green
+  2.8), because Material's brightness estimate leans white. The band is fills
+  with relative luminance between 0.179, where black starts to out-contrast
+  white, and 0.337, where the estimate switches to black. The test on
+  `Colors.blue` asserts that the band exists before asserting white. This was
+  declined in ADR 0002, not missed.
 - **An equality test on styles is vacuous if written with `const`.** Dart makes
   identical `const` constructions one instance, so `const a == const b` passes
   with no `operator ==` at all. Build the values at runtime and assert

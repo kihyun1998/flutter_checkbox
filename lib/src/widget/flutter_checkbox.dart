@@ -50,7 +50,8 @@ class FlutterCheckbox extends StatefulWidget {
   /// [Checkbox.checkColor].
   ///
   /// When non-null this **overrides** [CheckboxStyle.checkColor]. Resolution
-  /// order is: `checkColor` → `style.checkColor` → [Colors.white].
+  /// order is: `checkColor` → `style.checkColor` → a colour that follows the
+  /// fill (see [CheckboxStyle.checkColor]).
   final Color? checkColor;
 
   /// A description of the checkbox for accessibility tools, mirroring Flutter

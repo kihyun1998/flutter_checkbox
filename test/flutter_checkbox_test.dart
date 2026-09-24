@@ -763,6 +763,32 @@ void main() {
       expect(resolvedStyle(tester).checkColor, Colors.black);
     });
 
+    testWidgets('top-level activeColor sets the default check colour', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.indigo,
+              brightness: Brightness.dark,
+            ),
+          ),
+          home: Scaffold(
+            body: Center(
+              child: FlutterCheckbox(
+                value: true,
+                onChanged: (_) {},
+                activeColor: Colors.amber,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(resolvedStyle(tester).activeColor, Colors.amber);
+      expect(resolvedStyle(tester).checkColor, Colors.black);
+    });
+
     testWidgets('falls back to style color when no top-level override', (
       tester,
     ) async {
@@ -1496,7 +1522,7 @@ void main() {
       final resolved = style.resolve(theme);
 
       expect(resolved.activeColor, theme.colorScheme.primary);
-      expect(resolved.checkColor, Colors.white);
+      expect(resolved.checkColor, theme.colorScheme.onPrimary);
       expect(resolved.borderColor, theme.colorScheme.outline);
       expect(resolved.inactiveColor, Colors.transparent);
     });
@@ -1511,6 +1537,46 @@ void main() {
 
       expect(resolved.activeColor, Colors.red);
       expect(resolved.checkColor, Colors.yellow);
+    });
+
+    group('default checkColor', () {
+      // A dark M3 theme, whose primary is a light tone.
+      final dark = ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          brightness: Brightness.dark,
+        ),
+      );
+
+      test('is onPrimary when the fill is the theme primary', () {
+        final resolved = const CheckboxStyle().resolve(dark);
+
+        expect(dark.colorScheme.onPrimary, isNot(Colors.white));
+        expect(resolved.checkColor, dark.colorScheme.onPrimary);
+      });
+
+      test('is white on a caller-set dark fill', () {
+        final resolved =
+            const CheckboxStyle(activeColor: Colors.indigo).resolve(dark);
+
+        expect(resolved.checkColor, Colors.white);
+      });
+
+      test('is black on a caller-set light fill, in any theme', () {
+        const style = CheckboxStyle(activeColor: Colors.amber);
+
+        expect(style.resolve(dark).checkColor, Colors.black);
+        expect(style.resolve(ThemeData.light()).checkColor, Colors.black);
+      });
+
+      test('stays white on a caller-set mid-tone fill', () {
+        expect(Colors.blue.computeLuminance(), inInclusiveRange(0.179, 0.337));
+
+        final resolved =
+            const CheckboxStyle(activeColor: Colors.blue).resolve(dark);
+
+        expect(resolved.checkColor, Colors.white);
+      });
     });
 
     test('copyWith overrides only the given fields', () {
@@ -1530,6 +1596,16 @@ void main() {
       expect(resolved.hoverColor, p.withValues(alpha: 0.08));
       expect(resolved.focusColor, p.withValues(alpha: 0.12));
       expect(resolved.splashColor, p.withValues(alpha: 0.12));
+    });
+
+    test('resolve derives overlay colors from a caller-set fill', () {
+      final resolved = const CheckboxStyle(activeColor: Colors.amber).resolve(
+        ThemeData.light(),
+      );
+
+      expect(resolved.hoverColor, Colors.amber.withValues(alpha: 0.08));
+      expect(resolved.focusColor, Colors.amber.withValues(alpha: 0.12));
+      expect(resolved.splashColor, Colors.amber.withValues(alpha: 0.12));
     });
 
     test('resolve preserves explicit overlay colors', () {

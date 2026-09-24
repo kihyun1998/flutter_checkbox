@@ -80,7 +80,8 @@ FlutterCheckbox(
 ```
 
 A top-level color overrides the same field in `style`; when omitted, `style`
-(then the theme) supplies it.
+supplies it, and a `null` there takes the default in the
+[`CheckboxStyle` table](#checkboxstyle).
 
 ### Custom style
 
@@ -221,7 +222,7 @@ supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-on
 | `size` | `double` | `24` | Box width & height in logical pixels |
 | `scale` | `double` | `1.0` | Proportional scale (affects box, ring, and hit area) |
 | `activeColor` | `Color?` | `ColorScheme.primary` | Checked background |
-| `checkColor` | `Color?` | `Colors.white` | Checkmark / dash color |
+| `checkColor` | `Color?` | follows the fill | Checkmark / dash color. `ColorScheme.onPrimary` on the theme's fill; on a custom `activeColor`, white or black by its brightness |
 | `borderColor` | `Color?` | `ColorScheme.outline` | Unchecked border |
 | `inactiveColor` | `Color?` | `Colors.transparent` | Unchecked background |
 | `borderWidth` | `double` | `2` | Border stroke width |
@@ -235,9 +236,9 @@ supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-on
 | `hoverRingPadding` | `double` | `4` | Space between box edge and ring edge |
 | `hoverRingShape` | `CheckboxShape?` | `null` (follows box) | Ring shape override |
 | `hoverRingBorderRadius` | `double?` | `null` (borderRadius + 2) | Ring corner radius override |
-| `hoverColor` | `Color?` | `primary` @ 8% | Ring overlay while hovered |
-| `focusColor` | `Color?` | `primary` @ 12% | Ring overlay while focused |
-| `splashColor` | `Color?` | `primary` @ 12% | Ripple colour on tap |
+| `hoverColor` | `Color?` | fill @ 8% | Ring overlay while hovered. The fill is `activeColor`, else `ColorScheme.primary` |
+| `focusColor` | `Color?` | fill @ 12% | Ring overlay while focused |
+| `splashColor` | `Color?` | fill @ 12% | Ripple colour on tap |
 | `shadows` | `List<BoxShadow>?` | `null` (none) | Drop shadows cast by the box. Painting only, never layout. First entry paints underneath (CSS is the reverse), and it is not clipped to the box exterior — use `BlurStyle.outer` for the CSS look. Unaffected by `scale` |
 | `disabledOpacity` | `double` | `0.4` | Opacity when `enabled: false` |
 
@@ -284,10 +285,10 @@ supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-on
 | `tileBorderSide` | `BorderSide?` | `null` | Tile border |
 | `tileAnimationDuration` | `Duration` | `200ms` | Background color transition |
 | `tileAnimationCurve` | `Curve` | `Curves.easeInOut` | Background transition curve |
-| `hoverColor` | `Color?` | `primary @ 8%` | Hover overlay |
-| `splashColor` | `Color?` | `primary @ 12%` | Tap ripple |
+| `hoverColor` | `Color?` | checkbox fill @ 8% | Hover overlay (fill: `checkboxStyle.activeColor`, else `primary`) |
+| `splashColor` | `Color?` | checkbox fill @ 12% | Tap ripple |
 | `highlightColor` | `Color?` | `null` | Held tap highlight |
-| `focusColor` | `Color?` | `primary @ 12%` | Focus overlay |
+| `focusColor` | `Color?` | checkbox fill @ 12% | Focus overlay |
 | `elevation` | `double` | `0` | Material elevation of the whole tile — the box's own drop shadow is `CheckboxStyle.shadows` |
 | `enabled` | `bool` | `true` | Interactive state |
 | `autofocus` | `bool` | `false` | Request focus on first build |
