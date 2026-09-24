@@ -62,8 +62,9 @@ class FlutterCheckbox extends StatefulWidget {
 
   /// Whether the checkbox is interactive.
   ///
-  /// When `false`, the widget renders at 40% opacity and [onChanged] is not
-  /// called. This is the way to render a **disabled** checkbox.
+  /// When `false`, the widget renders at [CheckboxStyle.disabledOpacity] and
+  /// [onChanged] is not called. This is the way to render a **disabled**
+  /// checkbox.
   ///
   /// Note this differs from Flutter's [Checkbox], which has no `enabled` and
   /// treats `onChanged: null` as disabled. Here `onChanged: null` only makes

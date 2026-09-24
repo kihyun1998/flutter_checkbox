@@ -36,7 +36,7 @@ Flutter's built-in `Checkbox` has limitations:
 
 ```yaml
 dependencies:
-  flutter_checkbox: ^0.3.2
+  flutter_checkbox: ^0.3.3
 ```
 
 Then run `flutter pub get`.
@@ -253,7 +253,7 @@ supported. See [`docs/adr/0001-one-node-one-focus.md`](docs/adr/0001-one-node-on
 | `activeColor` | `Color?` | `null` | Checked fill; overrides `style.activeColor` (≈ `Checkbox.activeColor`) |
 | `checkColor` | `Color?` | `null` | Checkmark/dash color; overrides `style.checkColor` (≈ `Checkbox.checkColor`) |
 | `semanticLabel` | `String?` | `null` | Accessibility label (≈ `Checkbox.semanticLabel`) |
-| `enabled` | `bool` | `true` | When `false`, renders at 40% opacity. Disable via this, not `onChanged: null` |
+| `enabled` | `bool` | `true` | When `false`, renders at `style.disabledOpacity` (default 40%). Disable via this, not `onChanged: null` |
 | `autofocus` | `bool` | `false` | Request focus on first build |
 | `focusNode` | `FocusNode?` | `null` | External focus control |
 | `mouseCursor` | `MouseCursor?` | `null` | Defaults to `click` / `basic` |

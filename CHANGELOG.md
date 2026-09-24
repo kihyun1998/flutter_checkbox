@@ -5,10 +5,18 @@
 - **The default check colour follows the fill** (#13). It used to be `Colors.white` whatever it sat on, so on a light fill (every dark Material 3 theme's `primary`) the check was nearly invisible, at 1.7:1 contrast. With `checkColor` left `null`:
   - on the theme's own fill (`activeColor` also `null`), the check is `ColorScheme.onPrimary`, the colour the theme defines as legible on `primary`;
   - on a custom `activeColor`, it is white or black by that colour's brightness (`ThemeData.estimateBrightnessForColor`), so a light fill such as amber gets a black check, in light themes too.
+- **The hover, focus and splash overlays follow the fill.** With `hoverColor`, `focusColor` or `splashColor` left `null`, they now tint with `activeColor` when one is set, at the same 8% / 12% as before, instead of the theme's `primary`. That applies to `FlutterCheckboxTile`'s overlays too, which take their defaults from `checkboxStyle`.
 
-**Behaviour change:** a `null` `checkColor` is no longer always white. An explicit `checkColor` is unaffected. With no custom `activeColor`, a light theme built with `ColorScheme.fromSeed`'s default variant has a white `onPrimary` and sees no change; the `monochrome` variant's light `onPrimary` is `#E2E2E2`. A custom light `activeColor` now gets a black check in every theme. Mid-tone fills such as blue keep a white check.
+**Behaviour change:** these four defaults now depend on the fill, so a `null` `checkColor` is no longer always white. Any colour you set explicitly is unaffected.
 
-- **The hover, focus and splash overlays follow the fill.** With `hoverColor`, `focusColor` or `splashColor` left `null`, they now tint with `activeColor` when one is set, at the same 8% / 12% as before, instead of the theme's `primary`. That applies to `FlutterCheckboxTile`'s overlays too, which take their defaults from `checkboxStyle`. With no custom `activeColor` nothing changes.
+- With no custom `activeColor`, the overlays do not change. The check changes only where `onPrimary` is not white: dark themes, and light themes whose `onPrimary` is not white. `ColorScheme.fromSeed`'s default variant has a white light `onPrimary`, so it sees no change; the `monochrome` variant's is `#E2E2E2`.
+- A custom light `activeColor` now gets a black check in every theme. Mid-tone fills such as blue keep a white check.
+
+The options weighed and the contrast measured for each are in [`docs/adr/0002-default-check-colour-follows-the-fill.md`](docs/adr/0002-default-check-colour-follows-the-fill.md).
+
+### Example
+
+- The playground's active and check colour pickers gain "Theme" and "Default" entries (both `null`), and a "Dark theme" switch, so the derived defaults can be seen.
 
 ## 0.3.2
 
