@@ -94,5 +94,3 @@ Read from the source, apart from the colours that follow the fill, which ADR
   identical `const` constructions one instance, so `const a == const b` passes
   with no `operator ==` at all. Build the values at runtime and assert
   `identical(a, b)` is false first.
-- `FlutterCheckbox.enabled`'s doc comment says 40% opacity. The value is
-  `disabledOpacity`, which callers can set.

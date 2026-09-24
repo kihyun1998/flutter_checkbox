@@ -4,8 +4,9 @@
 
 `interactive = enabled && onChanged != null`. When it is false, a control has no
 tap, no focus stop, no keyboard activation and no hover ring. Its semantics node
-says `enabled: false`. **`onChanged: null` is not "disabled"**: it has no 40%
-opacity. That look is `enabled: false`, and the two differ only in appearance.
+says `enabled: false`. **`onChanged: null` is not "disabled"**: it is not
+dimmed to `disabledOpacity`. That look is `enabled: false`, and the two differ
+only in appearance.
 
 ## Why it is cross-cutting
 
