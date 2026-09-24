@@ -49,7 +49,7 @@ now has a node: [One node, one stop](invariant/one-node-one-stop.md).
   ([Example app](territory/example-app.md)), and a note can only say so.
 - **Reference comparisons.** The repo has no store of pinned external facts, so
   most `## Reference behaviour` sections are `**None.**`. The pins that do exist
-  sit in ADR 0001.
+  sit in the decision records under `docs/adr/`.
 
 ## Measured when this map was written (at 4c46353)
 

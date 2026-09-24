@@ -33,7 +33,10 @@ class CheckboxStyle {
 
   /// The color of the checkmark/dash stroke.
   ///
-  /// If `null`, defaults to [Colors.white].
+  /// If `null`, it follows the fill: [ColorScheme.onPrimary] when
+  /// [activeColor] is also `null`, otherwise [Colors.white] or [Colors.black]
+  /// by the estimated brightness of [activeColor]
+  /// ([ThemeData.estimateBrightnessForColor]).
   final Color? checkColor;
 
   /// The border color when the checkbox is unchecked.
@@ -88,17 +91,20 @@ class CheckboxStyle {
 
   /// The overlay colour of the ring while hovered.
   ///
-  /// If `null`, defaults to `ColorScheme.primary` at 8% opacity.
+  /// If `null`, defaults to the fill ([activeColor], else
+  /// `ColorScheme.primary`) at 8% opacity.
   final Color? hoverColor;
 
   /// The overlay colour of the ring while focused.
   ///
-  /// If `null`, defaults to `ColorScheme.primary` at 12% opacity.
+  /// If `null`, defaults to the fill ([activeColor], else
+  /// `ColorScheme.primary`) at 12% opacity.
   final Color? focusColor;
 
   /// The splash (ripple) colour on tap.
   ///
-  /// If `null`, defaults to `ColorScheme.primary` at 12% opacity.
+  /// If `null`, defaults to the fill ([activeColor], else
+  /// `ColorScheme.primary`) at 12% opacity.
   final Color? splashColor;
 
   /// Drop shadows cast by the checkbox box, painted beneath it.
@@ -241,16 +247,26 @@ class CheckboxStyle {
     );
   }
 
-  /// Returns a new [CheckboxStyle] with all `null` colors replaced by
-  /// theme-derived defaults.
+  /// The check colour used when [checkColor] is `null`; see [checkColor].
+  Color _defaultCheckColor(ThemeData theme) {
+    final fill = activeColor;
+    if (fill == null) return theme.colorScheme.onPrimary;
+    return ThemeData.estimateBrightnessForColor(fill) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+  }
+
+  /// Returns a new [CheckboxStyle] with every theme-derived `null` colour
+  /// filled in. [checkColor] and the overlay colours follow the fill;
+  /// [inactiveColor] defaults to transparent.
   CheckboxStyle resolve(ThemeData theme) {
-    final primary = theme.colorScheme.primary;
+    final fill = activeColor ?? theme.colorScheme.primary;
     return CheckboxStyle(
       shape: shape,
       size: size,
       scale: scale,
-      activeColor: activeColor ?? primary,
-      checkColor: checkColor ?? Colors.white,
+      activeColor: fill,
+      checkColor: checkColor ?? _defaultCheckColor(theme),
       borderColor: borderColor ?? theme.colorScheme.outline,
       inactiveColor: inactiveColor ?? Colors.transparent,
       borderWidth: borderWidth,
@@ -260,9 +276,9 @@ class CheckboxStyle {
       hoverRingPadding: hoverRingPadding,
       hoverRingShape: hoverRingShape,
       hoverRingBorderRadius: hoverRingBorderRadius,
-      hoverColor: hoverColor ?? primary.withValues(alpha: 0.08),
-      focusColor: focusColor ?? primary.withValues(alpha: 0.12),
-      splashColor: splashColor ?? primary.withValues(alpha: 0.12),
+      hoverColor: hoverColor ?? fill.withValues(alpha: 0.08),
+      focusColor: focusColor ?? fill.withValues(alpha: 0.12),
+      splashColor: splashColor ?? fill.withValues(alpha: 0.12),
       shadows: shadows,
       disabledOpacity: disabledOpacity,
       animationDuration: animationDuration,

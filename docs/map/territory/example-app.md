@@ -23,10 +23,15 @@ visual claim is proved by running it.
   by planting a type error in it.
 - **The shadow presets are shadcn/ui tokens translated**, with the layer order
   reversed from CSS. Flutter paints the first entry underneath.
+- **The playground shows the derived defaults.** Active and check colours
+  each have a null entry ("Theme", "Default") and a "Dark theme" switch flips
+  the seed scheme's brightness, so both halves of ADR 0002 can be seen. The
+  brightness lives in a top-level `_brightness` notifier.
 
 ## Code
 
-- `example/lib/main.dart` — `PlaygroundApp`, `_PlaygroundPageState`,
+- `example/lib/main.dart` — `PlaygroundApp`, `_brightness`,
+  `_PlaygroundPageState`,
   `_buildControlsPanel`, `_buildCheckboxPreview`, `_buildTilePreview`,
   `_shadowPresets`
 - `example/pubspec.yaml`

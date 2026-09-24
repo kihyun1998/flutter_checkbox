@@ -5,19 +5,28 @@ void main() {
   runApp(const PlaygroundApp());
 }
 
+/// The playground's theme brightness, switched from the controls panel.
+final _brightness = ValueNotifier(Brightness.light);
+
 class PlaygroundApp extends StatelessWidget {
   const PlaygroundApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'FlutterCheckbox Playground',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
+    return ValueListenableBuilder<Brightness>(
+      valueListenable: _brightness,
+      builder: (context, brightness, _) => MaterialApp(
+        title: 'FlutterCheckbox Playground',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.indigo,
+            brightness: brightness,
+          ),
+          useMaterial3: true,
+        ),
+        home: const PlaygroundPage(),
       ),
-      home: const PlaygroundPage(),
     );
   }
 }
@@ -42,8 +51,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   double _checkStrokeWidth = 2.5;
   double _checkScale = 1.0;
   double _disabledOpacity = 0.4;
-  Color _activeColor = Colors.indigo;
-  Color _checkColor = Colors.white;
+  Color? _activeColor;
+  Color? _checkColor;
   double _animationDurationMs = 200;
   double _morphDurationMs = 150;
   double _hoverRingPadding = 4;
@@ -129,7 +138,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
   };
 
   // ── Color options ──────────────────────────────────────────────────────────
-  static const Map<String, Color> _activeColors = {
+  static const Map<String, Color?> _activeColors = {
+    'Theme': null,
     'Indigo': Colors.indigo,
     'Red': Colors.red,
     'Green': Colors.green,
@@ -138,7 +148,8 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
     'Teal': Colors.teal,
   };
 
-  static const Map<String, Color> _checkColors = {
+  static const Map<String, Color?> _checkColors = {
+    'Default': null,
     'White': Colors.white,
     'Black': Colors.black,
     'Yellow': Colors.yellow,
@@ -336,18 +347,25 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
             ],
           ),
           const SizedBox(height: 8),
-          _colorPicker(
+          _nullableColorPicker(
             'Active Color',
             _activeColors,
             _activeColor,
             (c) => setState(() => _activeColor = c),
           ),
           const SizedBox(height: 8),
-          _colorPicker(
+          _nullableColorPicker(
             'Check Color',
             _checkColors,
             _checkColor,
             (c) => setState(() => _checkColor = c),
+          ),
+          SwitchListTile(
+            title: const Text('Dark theme'),
+            value: _brightness.value == Brightness.dark,
+            onChanged: (v) => setState(
+              () => _brightness.value = v ? Brightness.dark : Brightness.light,
+            ),
           ),
 
           _divider('Focus & Keyboard'),
@@ -646,32 +664,6 @@ class _PlaygroundPageState extends State<PlaygroundPage> {
           ),
         ),
         SizedBox(width: 40, child: Text(value.toStringAsFixed(1))),
-      ],
-    );
-  }
-
-  Widget _colorPicker(
-    String label,
-    Map<String, Color> options,
-    Color current,
-    ValueChanged<Color> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: options.entries.map((e) {
-            final isSelected = e.value == current;
-            return GestureDetector(
-              onTap: () => onChanged(e.value),
-              child: _colorDot(e.value, isSelected),
-            );
-          }).toList(),
-        ),
       ],
     );
   }
