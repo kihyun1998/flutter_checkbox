@@ -30,7 +30,7 @@ rendering at any size.
 - **`scale` applies to the *rendered* size** so the hit area matches the visual —
   never scale one without the other.
 
-`CONTEXT.md` does not exist yet — created lazily when a term collides. There is
+`GLOSSARY.md` does not exist yet — created lazily when a term collides. There is
 **no CI**; these local gates are the only ones:
 
 ```
@@ -76,4 +76,4 @@ Five canonical triage roles, label strings equal to their names. See `docs/agent
 
 ### Domain docs
 
-Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root (created lazily). See `docs/agents/domain.md`.
+Single-context — one `GLOSSARY.md` + `docs/adr/` at the repo root (created lazily). See `docs/agents/domain.md`.
