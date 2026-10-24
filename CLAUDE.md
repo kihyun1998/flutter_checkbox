@@ -68,7 +68,7 @@ first (`decant`).
 
 ### Issue tracker
 
-Issues and PRDs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
+Issues and specs live as GitHub issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
