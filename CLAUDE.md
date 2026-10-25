@@ -30,8 +30,7 @@ rendering at any size.
 - **`scale` applies to the *rendered* size** so the hit area matches the visual —
   never scale one without the other.
 
-`GLOSSARY.md` does not exist yet — created lazily when a term collides. There is
-**no CI**; these local gates are the only ones:
+There is **no CI**; these local gates are the only ones:
 
 ```
 flutter analyze                                   # also reaches example/lib
@@ -40,9 +39,6 @@ flutter test                                      # test/ only
 flutter pub publish --dry-run                     # 0 warnings, on a clean tree
 python3 scripts/check_map.py --selftest && python3 scripts/check_map.py
 ```
-
-The SDK floor is hand-reasoned because nothing checks it — see
-`docs/map/territory/publishing.md`.
 
 ## Comments
 
@@ -60,9 +56,9 @@ first (`decant`).
   next-version section, opening one if there is none.
 - Releases are batched and the call is the maintainer's. An agent may propose
   one; **`flutter pub publish` is run by the maintainer, never by an agent.**
-- Pre-1.0 semver: breaking → `0.(x+1).0`; features and fixes → `0.x.(y+1)`.
-- Consumers: derive them by scanning `../*/pubspec.yaml` for `flutter_checkbox`;
-  link one with `dependency_overrides: {flutter_checkbox: {path: <this repo>}}`.
+- Before raising the SDK floor or calling a newer framework API, proposing a
+  release, or checking a change against a consumer app, read
+  `docs/map/territory/publishing.md`. Nothing gates the SDK floor.
 
 ## Agent skills
 
@@ -76,4 +72,4 @@ Five canonical triage roles, label strings equal to their names. See `docs/agent
 
 ### Domain docs
 
-Single-context — one `GLOSSARY.md` + `docs/adr/` at the repo root (created lazily). See `docs/agents/domain.md`.
+Single-context — one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

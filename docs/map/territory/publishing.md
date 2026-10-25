@@ -28,6 +28,11 @@ the `pubspec.yaml` comment beside the floor.
   never reaches the people who already read it. A new version opens a new section.
 - **Doc comments ship.** dartdoc renders them as the pub.dev API reference, so
   a doc comment that describes old behaviour is a published contract.
+- **Pre-1.0 semver.** Breaking → `0.(x+1).0`; features and fixes →
+  `0.x.(y+1)`.
+- **Consumers are derived, not listed.** Scan `../*/pubspec.yaml` for
+  `flutter_checkbox`; link one with
+  `dependency_overrides: {flutter_checkbox: {path: <this repo>}}`.
 - **The `README.md` install snippet pins a version.** It belongs to the release
   bump, not to the change that adds a feature. It sat at `^0.3.1` through the
   whole 0.3.2 cycle (#12).
