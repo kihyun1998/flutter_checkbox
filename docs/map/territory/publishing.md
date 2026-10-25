@@ -73,3 +73,8 @@ the API, then `git tag --contains`), not recorded against a pinned revision.
   resolves `./example`. A gate run leaves a diff that nobody wrote.
 - **`dart format` was red on `main` under a newer SDK** (5 files, recorded
   during #8). That was a formatter version drift, not code.
+- **No dependency is watched.** The only non-SDK dependency is the dev
+  `flutter_lints`, and the repo has no `.github/` at all. A root-only Dependabot
+  config is designed on the issue, and its *why* is meant to land in this note.
+  `.pubignore` does not list `.github/`, so the first file under it would ship
+  unless it is added there. Tracked: #17.

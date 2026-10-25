@@ -19,8 +19,9 @@ visual claim is proved by running it.
 - **No tests, on purpose.** It once had a smoke test that no gate ran. That test
   rotted red, asserting a title the app no longer rendered, and was deleted
   rather than gated. `flutter test` at the root runs `test/` only.
-- **`flutter analyze` at the root does reach `example/lib`.** This was verified
-  by planting a type error in it.
+- **`flutter analyze` at the root does reach `example/lib`.** The first map
+  verified this by planting a type error in it (2026-09-24); `CLAUDE.md`'s gate
+  list relies on it.
 - **The shadow presets are shadcn/ui tokens translated**, with the layer order
   reversed from CSS. Flutter paints the first entry underneath.
 - **The playground shows the derived defaults.** Active and check colours

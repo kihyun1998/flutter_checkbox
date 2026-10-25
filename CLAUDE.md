@@ -5,7 +5,9 @@
 Substantive changes (bug fix / feature / behavior change) follow the
 **`thegraph`** skill — run `/thegraph` at the start. What it reads here:
 `docs/agents/thegraph.md` (the outside sources this is built against), the
-territory map at `docs/map/README.md`, and the decision records in `docs/adr/`.
+territory map at [`docs/map/README.md`](docs/map/README.md), and the decision
+records in `docs/adr/`. Read the map before designing a change (`read-it`), and
+bring the notes it touched up to date once it lands (`sweep`).
 A map note that cites `docs/agents/lessons.md` points at the incident behind its
 rule; read that entry when you are about to change the rule.
 

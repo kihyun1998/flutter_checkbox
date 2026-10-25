@@ -16,8 +16,8 @@ reads the resolved copy.
   before extending it further.
 
 The rest has no record. "A plain value object resolved once, no
-`WidgetStateProperty`" came from #5 (moving the overlay colours into `resolve`),
-which is an issue, not a record.
+`WidgetStateProperty`" came from #5 (moving the overlay colours into `resolve`,
+acb1bf6), which is an issue, not a record.
 
 ## Design model
 
