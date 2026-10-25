@@ -84,7 +84,8 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
   tap area and ripple include `margin`. Found by reading at a7b403e; not run,
   since no Flutter SDK was available. Not known before (maintainer, 2026-10-25).
   The `Chrome` tests pin elevation, margin and border, not the overlays.
+  Tracked: #18.
 - **A custom `labelWidget` gets no disabled styling.** A text `label` takes
   `theme.disabledColor` and the subtitle `Opacity(disabledOpacity)`, but a
   `labelWidget` is used as given. Found by reading at a7b403e. Not known before
-  (maintainer, 2026-10-25).
+  (maintainer, 2026-10-25). Tracked: #19.
