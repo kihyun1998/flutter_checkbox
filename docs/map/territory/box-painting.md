@@ -27,7 +27,7 @@ Read from the source; nothing above it records the rules.
   `flutter_test` run, and without that clip a `BlurStyle.outer` shadow becomes a
   solid block over the checkbox, in consumers' tests too (#8).
 - **Stroke geometry is fixed fractions of the box**, scaled about the centre by
-  `checkScale` (#1). The check is three points and the dash is two. Both are drawn
+  `checkScale` (#1, dcb364b). The check is three points and the dash is two. Both are drawn
   up to `progress` of their path length.
 - **Nothing here is scaled by `scale`**: `borderWidth`, `borderRadius`,
   `checkStrokeWidth` and shadow offsets stay in logical pixels while the box
@@ -45,9 +45,11 @@ Read from the source; nothing above it records the rules.
 ## Reference behaviour
 
 - The shadow guard: Flutter's `_BoxDecorationPainter._paintShadows` in
-  `painting/box_decoration.dart`, read for #8. The read and its mutation test are
-  in the `CheckboxStyle.shadows` entry of `docs/agents/lessons.md`. No SDK version
-  was pinned.
+  `painting/box_decoration.dart`, read for #8 (857c3b3). The read and its
+  mutation test (a hand-rolled loop passes every geometry test and fails only the
+  `BlurStyle.outer` one) are the #8 entry of
+  [`docs/agents/lessons.md`](../../agents/lessons.md), headed *hand-rolling what
+  the framework already paints*. No SDK version was pinned.
 
 ## Cross-cutting invariants
 

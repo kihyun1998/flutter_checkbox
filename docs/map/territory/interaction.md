@@ -23,9 +23,10 @@ The rules are the ADR's. Two facts it does not state:
   `InkWell.onTap`), the keyboard (`CallbackAction<ActivateIntent>`) and assistive
   tech (`Semantics.onTap`) all call `_activate`, which does nothing unless
   `_isInteractive`.
-- **An unlabelled node's label is `''`, not `null`.** That keeps the node's
-  label stable for assertions. See the `matchesSemantics` entry in
-  `docs/agents/lessons.md`.
+- **An unlabelled node's label is `''`, not `null`.** `semanticLabel ?? ''`
+  keeps the no-label node as it was before `semanticLabel` existed; an explicit
+  `label: null` would leave it null instead (c7e24b3, 0.3.0). Not re-checked
+  against the framework since.
 
 ## Code
 

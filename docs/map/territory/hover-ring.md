@@ -35,7 +35,8 @@ Read from the source; nothing above it records the rules.
   a fixed 18dp box, and `MaterialTapTargetSize` moves only its hit area. The
   built-in's overlay paints outside layout and always exists. Here the ring is
   layout and is skipped when non-interactive. Neither difference is a defect,
-  and no record holds either one.
+  and no record holds either one. (The built-in's side is the first map's
+  reading, 2026-09-24; not re-read against the SDK since.)
 
 ## Code
 

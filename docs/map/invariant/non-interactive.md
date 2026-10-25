@@ -10,12 +10,12 @@ only in appearance.
 
 ## Why it is cross-cutting
 
-Three sites work the boolean out independently, and none of them calls the
-others. The seam has `_isInteractive`. `FlutterCheckbox`'s builder has
-`isInteractive = activate != null`. The tile computes its own for the cursor. The
-ring and the tile's composition read it from different places, so a change to
-the rule has to be made at every site. No territory-to-territory edge makes that
-visible.
+Two sites work the boolean out independently, and neither calls the other: the
+seam's `_isInteractive`, and the tile's own `isInteractive` in
+`_FlutterCheckboxTileState.build`, which picks its cursor. `FlutterCheckbox`'s
+builder reads it from the seam (`isInteractive = activate != null`), so it
+follows the seam. A change to the rule has to be made at both sites, and no
+territory-to-territory edge makes that visible.
 
 ## Territories it holds in
 

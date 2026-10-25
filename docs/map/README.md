@@ -1,6 +1,7 @@
 # Map — flutter_checkbox
 
-<!-- grill-map build stamp: eb0cd67 -->
+<!-- grill-map build stamp: 8e5a943 -->
+<!-- grill-map synced at: a7b403e (2026-10-25) -->
 
 A linked note graph that answers two questions no issue, record or file answers:
 
@@ -40,6 +41,10 @@ now has a node: [One node, one stop](invariant/one-node-one-stop.md).
   several headings, so every query for it names the heading.
 - `## Code` names symbols, never line numbers.
 - Links are plain relative markdown, so they work on GitHub and in Obsidian.
+- A value another artifact owns (a record's status, a count, an issue's state)
+  is linked, not restated.
+- Every claim carries its evidence (a symbol, a commit, a record) or its source
+  and date, so a stated reason reads apart from a checked one.
 
 ## What the map cannot answer
 
@@ -51,32 +56,36 @@ now has a node: [One node, one stop](invariant/one-node-one-stop.md).
   most `## Reference behaviour` sections are `**None.**`. The pins that do exist
   sit in the decision records under `docs/adr/`.
 
-## Measured when this map was written (at 4c46353)
+## The repo in one paragraph
 
-- **M1 — public surface:** 5 exported types and 66 public constructor fields,
-  plus `CheckboxStyle.copyWith` and `CheckboxStyle.resolve`. One decision record
-  governs the semantics and focus slice of them. Painting, style, ring, tile,
-  animation and the value cycle have none.
-- **M2 — mentioned vs about:** ADR 0001 is *about* accessibility. It *mentions*
-  the tristate cycle, `onChanged: null`, visual focus indication and the SDK
-  floor, each explicitly as not covered.
-- **M3 — file size:** no `lib/` file holds more than 30% of the layer. The
-  largest is the tile, at 26%. The territories are finer than the files anyway,
-  because `flutter_checkbox.dart` carries the ring, the painting call and the
-  animation wiring.
-- **M4 — forward-looking prose:** three sentences claimed no decision records
-  exist after ADR 0001 landed: one in `CLAUDE.md` and two in the bindings file of
-  the retired `theflow` skill. All three were removed when the map landed. ADR
-  0001's two open questions have no issue.
-- **M5 — backlog:** one open issue, #13, in
-  [Style resolution](territory/style-resolution.md).
+Two widgets, `FlutterCheckbox` and `FlutterCheckboxTile`, sit on one shared seam,
+`CheckboxInteraction`, which owns the single semantics node, the single focus
+stop and the guarded activation handler. The checkbox adds a `CustomPainter` box
+driven by two animation controllers, and a hover ring around it. The tile adds a
+row with a label, a subtitle and an animated background, and makes its inner
+checkbox purely visual. Every visual value lives in one `CheckboxStyle`,
+resolved against the `Theme` once. The value cycle is a pure module that holds no
+value. Territories are finer than files: `flutter_checkbox.dart` alone carries
+the ring, the painting call and the animation wiring.
 
 ## Coverage, and what an absent note means
 
-This pass covers the whole package: every file under `lib/`, the example and the
-publish surface. **An absent note is therefore a gap, not a deliberate state.**
-A new territory is owed when a change adds a public type or a rendering concern
-that no note's `## What it is` covers.
+This map covers the whole package: every file under `lib/` and `test/`, the
+example and the publish surface. **An absent note is therefore a gap, not a
+deliberate state.** A new territory is owed when a change adds a public type or a
+rendering concern that no note's `## What it is` covers, or when something in the
+repo commits to one (a decision record, an issue with a design).
+
+Out of scope, on purpose: the agent tooling (`scripts/check_map.py`, its config
+`.checkup.json`, and `docs/agents/`) and the decision records themselves. None of
+it ships; `.pubignore` keeps it out of the package.
+
+**The largest gap is the other side of the boundary.** `flutter_table_plus` and
+`flutter_dropdown_button` consume this package
+([ADR 0002](../adr/0002-default-check-colour-follows-the-fill.md#what-it-was-decided-on),
+#17), but no checkout of either was readable when this map was written, so no
+note reads their call sites. A change to a default or to the public surface is
+checked against them by hand ([Publishing](territory/publishing.md)).
 
 ## Nodes
 

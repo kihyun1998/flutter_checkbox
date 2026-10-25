@@ -28,6 +28,11 @@ the `pubspec.yaml` comment beside the floor.
   never reaches the people who already read it. A new version opens a new section.
 - **Doc comments ship.** dartdoc renders them as the pub.dev API reference, so
   a doc comment that describes old behaviour is a published contract.
+- **Pre-1.0 semver.** Breaking → `0.(x+1).0`; features and fixes →
+  `0.x.(y+1)`.
+- **Consumers are derived, not listed.** Scan `../*/pubspec.yaml` for
+  `flutter_checkbox`; link one with
+  `dependency_overrides: {flutter_checkbox: {path: <this repo>}}`.
 - **The `README.md` install snippet pins a version.** It belongs to the release
   bump, not to the change that adds a feature. It sat at `^0.3.1` through the
   whole 0.3.2 cycle (#12).
@@ -68,3 +73,8 @@ the API, then `git tag --contains`), not recorded against a pinned revision.
   resolves `./example`. A gate run leaves a diff that nobody wrote.
 - **`dart format` was red on `main` under a newer SDK** (5 files, recorded
   during #8). That was a formatter version drift, not code.
+- **No dependency is watched.** The only non-SDK dependency is the dev
+  `flutter_lints`, and the repo has no `.github/` at all. A root-only Dependabot
+  config is designed on the issue, and its *why* is meant to land in this note.
+  `.pubignore` does not list `.github/`, so the first file under it would ship
+  unless it is added there. Tracked: #17.
