@@ -110,8 +110,8 @@ class _CheckboxInteractionState extends State<CheckboxInteraction> {
         checked: widget.value ?? false,
         mixed: widget.value == null,
         enabled: _isInteractive,
-        // Empty (not null) keeps an unlabelled node's label as '' — see the
-        // matchesSemantics lesson.
+        // Empty (not null) keeps an unlabelled node's label as '' — see
+        // docs/map/territory/interaction.md.
         label: widget.semanticLabel ?? '',
         onTap: activate,
         child: FocusableActionDetector(
