@@ -5,8 +5,9 @@
 Substantive changes (bug fix / feature / behavior change) follow the
 **`thegraph`** skill — run `/thegraph` at the start. What it reads here:
 `docs/agents/thegraph.md` (the outside sources this is built against), the
-territory map at `docs/map/README.md`, the decision records in `docs/adr/`, and
-per-incident evidence in `docs/agents/lessons.md`.
+territory map at `docs/map/README.md`, and the decision records in `docs/adr/`.
+A map note that cites `docs/agents/lessons.md` points at the incident behind its
+rule; read that entry when you are about to change the rule.
 
 ## Identity & invariants (the boundary)
 
