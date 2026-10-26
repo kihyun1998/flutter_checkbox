@@ -44,9 +44,12 @@ class FlutterCheckboxTile extends StatefulWidget {
   /// merged into a single semantics node. A label widget that needs a semantics
   /// node of its own (an embedded link, say) is therefore **not supported**: the
   /// merge swallows it. Flutter's own `CheckboxListTile` has the same limit.
+  ///
+  /// A disabled tile renders it at [CheckboxStyle.disabledOpacity].
   final Widget? labelWidget;
 
-  /// Text style for [label].
+  /// Text style for [label]. A disabled tile renders the label at
+  /// [CheckboxStyle.disabledOpacity], over this style's colour.
   final TextStyle? labelStyle;
 
   /// Secondary text shown below the label. Cannot be used with [subtitleWidget].
@@ -240,9 +243,7 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
                 style: widget.labelStyle ??
                     TextStyle(
                       fontSize: widget.checkboxStyle.size * 0.6,
-                      color: widget.enabled
-                          ? theme.textTheme.bodyMedium?.color
-                          : theme.disabledColor,
+                      color: theme.textTheme.bodyMedium?.color,
                     ),
               ))
           : null;
@@ -254,24 +255,24 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
                     fontSize: widget.checkboxStyle.size * 0.5,
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
-              child: Opacity(
-                opacity:
-                    widget.enabled ? 1.0 : widget.checkboxStyle.disabledOpacity,
-                child: widget.subtitleWidget ?? Text(widget.subtitle!),
-              ),
+              child: widget.subtitleWidget ?? Text(widget.subtitle!),
             )
           : null;
 
-      labelColumn = Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (labelWidget != null) labelWidget,
-          if (subtitleWidget != null) ...[
-            const SizedBox(height: 2),
-            subtitleWidget,
+      // Dims label and subtitle together when disabled.
+      labelColumn = Opacity(
+        opacity: widget.enabled ? 1.0 : widget.checkboxStyle.disabledOpacity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (labelWidget != null) labelWidget,
+            if (subtitleWidget != null) ...[
+              const SizedBox(height: 2),
+              subtitleWidget,
+            ],
           ],
-        ],
+        ),
       );
     }
 

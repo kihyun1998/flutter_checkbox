@@ -150,6 +150,24 @@ Future<Color> pixelAt(WidgetTester tester, Offset position) async {
   return color;
 }
 
+/// The product of every [Opacity] between [finder] and its enclosing
+/// [FlutterCheckboxTile].
+double effectiveOpacity(WidgetTester tester, Finder finder) {
+  var product = 1.0;
+  for (final element
+      in find.ancestor(of: finder, matching: find.byType(Opacity)).evaluate()) {
+    final inTile = find
+        .ancestor(
+          of: find.byElementPredicate((e) => e == element),
+          matching: find.byType(FlutterCheckboxTile),
+        )
+        .evaluate()
+        .isNotEmpty;
+    if (inTile) product *= (element.widget as Opacity).opacity;
+  }
+  return product;
+}
+
 Finder findCheckboxPaint() {
   return find.descendant(
     of: find.byType(FlutterCheckbox),
@@ -1619,6 +1637,103 @@ void main() {
       );
 
       expect(find.text('Sub'), findsOneWidget);
+    });
+  });
+
+  group('FlutterCheckboxTile / Disabled label', () {
+    const labelKey = Key('label');
+
+    testWidgets('a labelWidget dims when disabled', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            labelWidget: Text('Custom', key: labelKey),
+            enabled: false,
+          ),
+        ),
+      );
+      expect(effectiveOpacity(tester, find.byKey(labelKey)), 0.4);
+    });
+
+    testWidgets('a labelWidget is at full strength when enabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          FlutterCheckboxTile(
+            value: false,
+            labelWidget: const Text('Custom', key: labelKey),
+            onChanged: (_) {},
+          ),
+        ),
+      );
+      expect(effectiveOpacity(tester, find.byKey(labelKey)), 1.0);
+    });
+
+    testWidgets('a label with a labelStyle dims when disabled', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            label: 'Styled',
+            labelStyle: TextStyle(color: Colors.red),
+            enabled: false,
+          ),
+        ),
+      );
+      expect(effectiveOpacity(tester, find.text('Styled')), 0.4);
+      expect(tester.widget<Text>(find.text('Styled')).style?.color, Colors.red);
+    });
+
+    testWidgets('the default label is dimmed once, not recoloured', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            label: 'Plain',
+            enabled: false,
+          ),
+        ),
+      );
+      final context = tester.element(find.text('Plain'));
+      expect(effectiveOpacity(tester, find.text('Plain')), 0.4);
+      expect(
+        tester.widget<Text>(find.text('Plain')).style?.color,
+        isNot(Theme.of(context).disabledColor),
+      );
+    });
+
+    testWidgets('the subtitle is dimmed once', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            label: 'Main',
+            subtitle: 'Sub',
+            enabled: false,
+          ),
+        ),
+      );
+      expect(effectiveOpacity(tester, find.text('Sub')), 0.4);
+    });
+
+    testWidgets('a custom disabledOpacity is the one applied', (tester) async {
+      await tester.pumpWidget(
+        buildApp(
+          const FlutterCheckboxTile(
+            value: false,
+            labelWidget: Text('Custom', key: labelKey),
+            checkboxStyle: CheckboxStyle(disabledOpacity: 0.7),
+            enabled: false,
+          ),
+        ),
+      );
+      expect(effectiveOpacity(tester, find.byKey(labelKey)), 0.7);
     });
   });
 
