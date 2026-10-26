@@ -7,6 +7,10 @@
 
 **Behaviour change:** a tile with a `margin` has a smaller tap and hover area, now exactly the tile's box. Its semantics node shrinks to the same box. A tile without a `margin` is unaffected.
 
+- **A disabled `FlutterCheckboxTile` dims its whole label** (#19). A custom `labelWidget`, and a text `label` given a `labelStyle`, used to stay at full strength next to a dimmed checkbox and subtitle. Now the label and subtitle, in every form, render at `checkboxStyle.disabledOpacity`, the same rule the checkbox uses.
+
+**Behaviour change:** the default text label of a disabled tile is no longer coloured `theme.disabledColor`. It keeps its enabled colour (`textTheme.bodyMedium`) at `disabledOpacity`, which is 40% by default. A custom `disabledOpacity` now reaches the label too.
+
 ## 0.3.3
 
 ### Fixes

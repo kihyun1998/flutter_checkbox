@@ -25,6 +25,23 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
 - **The name is rendered, never declared.** The tile gives the seam
   `semanticLabel: null`. `label` / `labelWidget` and the subtitle merge onto the
   single node as its name (ADR R2).
+- **A disabled tile dims its label column with one `Opacity`**
+  (`checkboxStyle.disabledOpacity`). That covers the label and the subtitle in
+  every form: text, `labelStyle`, `labelWidget`, `subtitleWidget`. The inner
+  checkbox dims itself and sits outside that `Opacity`.
+  - Nothing inside the column dims again. The default label keeps its enabled
+    colour, and the subtitle has no `Opacity` of its own. Nested opacities
+    multiply: a second one shows the subtitle at 0.16 (measured, #19).
+  - The `Opacity` stays in the tree when enabled, at 1.0, so toggling `enabled`
+    does not reparent a `labelWidget` and lose its state.
+  - **The maintainer's call** (#19 triage, 2026-10-26). Shown against three
+    rejected options:
+    - dimming only custom labels, so two mechanisms remain;
+    - `ListTile`'s `DefaultTextStyle(color: disabledColor)`, which leaves
+      explicit colours, icons and images undimmed;
+    - documenting it as the caller's job.
+  - Until #19, a text `label` took `theme.disabledColor`, the subtitle took
+    `Opacity`, and a `labelWidget` or a `labelStyle` label was not dimmed at all.
 - **Background by state:** disabled → `disabledColor`, `value == true` →
   `selectedColor`, otherwise `backgroundColor`. An indeterminate tile uses
   `backgroundColor`.
@@ -97,7 +114,3 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
   (a link) is swallowed by the merge (ADR 0001).
 - The tile has no `semanticLabel` escape hatch. ADR 0001 leaves that open and no
   issue tracks it.
-- **A custom `labelWidget` gets no disabled styling.** A text `label` takes
-  `theme.disabledColor` and the subtitle `Opacity(disabledOpacity)`, but a
-  `labelWidget` is used as given. Found by reading at a7b403e. Not known before
-  (maintainer, 2026-10-25). Tracked: #19.
