@@ -69,8 +69,22 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
     `InkWell` only, the margin still shows a click cursor. This was the
     maintainer's call, shown against that alternative (#18 confirm,
     2026-10-26).
-  - `Container` insets its child by the border width, so the ink stays inside
-    `tileBorderSide`.
+  - **The ink is clipped to the border's inner curve** (#25):
+    - **Rect.** `Container` insets its child by `Border.dimensions`, which is
+      `side.strokeInset`.
+    - **Radius.** The `InkWell`'s `borderRadius` is `tileBorderRadius` with
+      each corner reduced by the same `strokeInset` and clamped at zero
+      (`_deflate`). This mirrors `BoxBorder._paintUniformBorderWithRadius`,
+      which paints the inner edge as `toRRect(rect).deflate(strokeInset)`.
+    - So one formula holds for `inside` (`width`), `center` (`width / 2`) and
+      `outside` (`0`). That is derived from SDK source, not chosen.
+    - Before #25 the ink used the outer radius on the inset box. That left a
+      background gap on the corner arcs only: about 1px at radius 16 / width 4,
+      and `strokeInset × (1 − 1/√2)` per axis.
+    - **Deflating by `width` instead of `strokeInset` overpaints a centred
+      border.** Only an inside border makes the two equal, so a test of the
+      default border alone cannot tell them apart.
+    - The background and the elevation `Material` keep the outer radius.
   - `padding` lives inside the `InkWell`, so the padded area stays tappable.
     `AnimatedPadding` keeps the animation `AnimatedContainer` used to give it.
   - **A pixel test of the ink has to capture from a boundary above the
@@ -82,7 +96,7 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
 ## Code
 
 - `lib/src/widget/flutter_checkbox_tile.dart` — `FlutterCheckboxTile`,
-  `_FlutterCheckboxTileState`, `labelColumn`, `tileColor`, `AnimatedContainer`,
+  `_FlutterCheckboxTileState`, `_deflate`, `labelColumn`, `tileColor`, `AnimatedContainer`,
   `checkbox`
 - `lib/src/style/checkbox_position.dart` — `CheckboxPosition`
 

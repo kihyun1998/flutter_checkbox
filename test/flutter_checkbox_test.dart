@@ -1572,6 +1572,108 @@ void main() {
       });
     });
 
+    group('ink at a bordered corner', () {
+      const hover = Color(0xFFFF0000);
+      const background = Color(0xFFFFFFFF);
+      const borderColor = Color(0xFF00FF00);
+      const inset = Offset(20, 20);
+
+      /// Pumps a tile at [inset] and returns its top-left corner (global).
+      Future<Offset> pumpCorner(
+        WidgetTester tester, {
+        required double radius,
+        required double width,
+        double strokeAlign = BorderSide.strokeAlignInside,
+      }) async {
+        await tester.pumpWidget(
+          buildCapturedApp(
+            Padding(
+              padding: EdgeInsets.only(left: inset.dx, top: inset.dy),
+              child: SizedBox(
+                key: const Key('tile'),
+                width: 300,
+                child: FlutterCheckboxTile(
+                  value: false,
+                  label: 'Corner',
+                  backgroundColor: background,
+                  hoverColor: hover,
+                  tileBorderRadius: BorderRadius.circular(radius),
+                  tileBorderSide: BorderSide(
+                    color: borderColor,
+                    width: width,
+                    strokeAlign: strokeAlign,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 60,
+                    vertical: 24,
+                  ),
+                  onChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return tester.getTopLeft(find.byKey(const Key('tile')));
+      }
+
+      Future<void> hoverTile(WidgetTester tester) async {
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: Offset.zero);
+        addTearDown(mouse.removePointer);
+        await mouse.moveTo(tester.getCenter(find.byKey(const Key('tile'))));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('ink reaches the inner arc of an inside border', (
+        tester,
+      ) async {
+        final corner = await pumpCorner(tester, radius: 24, width: 8);
+        final p = corner + const Offset(13, 13);
+        expect(await pixelAt(tester, p), background);
+        await hoverTile(tester);
+        expect(await pixelAt(tester, p), hover);
+      });
+
+      testWidgets('ink reaches the inner arc of a centred border', (
+        tester,
+      ) async {
+        final corner = await pumpCorner(
+          tester,
+          radius: 24,
+          width: 16,
+          strokeAlign: BorderSide.strokeAlignCenter,
+        );
+        final p = corner + const Offset(13, 13);
+        expect(await pixelAt(tester, p), background);
+        await hoverTile(tester);
+        expect(await pixelAt(tester, p), hover);
+        expect(
+          await pixelAt(tester, corner + const Offset(10, 10)),
+          borderColor,
+        );
+      });
+
+      testWidgets('ink does not paint over the border', (tester) async {
+        final corner = await pumpCorner(tester, radius: 24, width: 8);
+        await hoverTile(tester);
+        expect(
+          await pixelAt(tester, corner + const Offset(9, 9)),
+          borderColor,
+        );
+      });
+
+      testWidgets('a border wider than the radius gives square ink', (
+        tester,
+      ) async {
+        final corner = await pumpCorner(tester, radius: 2, width: 4);
+        final p = corner + const Offset(4, 4);
+        expect(await pixelAt(tester, p), background);
+        await hoverTile(tester);
+        expect(await pixelAt(tester, p), hover);
+      });
+    });
+
     testWidgets('margin is not part of the interactive area', (tester) async {
       var calls = 0;
       await tester.pumpWidget(

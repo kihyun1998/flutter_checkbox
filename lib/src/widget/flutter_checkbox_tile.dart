@@ -303,6 +303,13 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
         ? Border.fromBorderSide(widget.tileBorderSide!)
         : null;
 
+    // The border's inner curve: each corner less the border's inset, as
+    // RRect.deflate computes it.
+    final inkBorderRadius = _deflate(
+      widget.tileBorderRadius,
+      widget.tileBorderSide?.strokeInset ?? 0,
+    );
+
     // The shared seam owns semantics (the tile's label + checked/tap on one
     // node) and keyboard activation; the tile supplies its own InkWell chrome.
     Widget tile = CheckboxInteraction(
@@ -335,7 +342,7 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
           splashColor: splashColor,
           highlightColor: widget.highlightColor,
           focusColor: focusColor,
-          borderRadius: widget.tileBorderRadius,
+          borderRadius: inkBorderRadius,
           child: AnimatedPadding(
             duration: widget.tileAnimationDuration,
             curve: widget.tileAnimationCurve,
@@ -377,4 +384,17 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
     }
     return tile;
   }
+}
+
+/// [radius] with every corner reduced by [inset] on both axes, clamped at zero.
+BorderRadius? _deflate(BorderRadius? radius, double inset) {
+  if (radius == null || inset == 0) return radius;
+  Radius corner(Radius r) =>
+      (r - Radius.circular(inset)).clamp(minimum: Radius.zero);
+  return BorderRadius.only(
+    topLeft: corner(radius.topLeft),
+    topRight: corner(radius.topRight),
+    bottomLeft: corner(radius.bottomLeft),
+    bottomRight: corner(radius.bottomRight),
+  );
 }
