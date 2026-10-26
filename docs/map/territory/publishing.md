@@ -36,11 +36,33 @@ the `pubspec.yaml` comment beside the floor.
 - **The `README.md` install snippet pins a version.** It belongs to the release
   bump, not to the change that adds a feature. It sat at `^0.3.1` through the
   whole 0.3.2 cycle (#12).
+- **Dependabot watches the root `pubspec.yaml` only** (`.github/dependabot.yml`,
+  #17). The only dependency it can raise is the dev `flutter_lints`. It uses
+  `increase-if-necessary`, and the root commits no lockfile, so a PR opens only
+  when a release falls outside the caret. At `0.x` every minor release does. So
+  each PR is a floor decision for consumers, not a chore. The PRs stay one per
+  dependency so that each one is a single release decision. There is no
+  `github-actions` entry because the repo has no workflow. `needs-triage` is
+  applied because the repo already has that label. Two values are the
+  maintainer's call, and only the maintainer can reverse them (#17 confirm,
+  2026-10-26):
+  - **Root only, no `/example` entry.** They were shown the siblings'
+    grouped monthly `/example` entry and the tracked `example/pubspec.lock`.
+    So nothing watches `example/` dependencies (`cupertino_icons`, its
+    `flutter_lints`).
+  - **`weekly`, overriding the issue's `monthly`.** They were shown that all six
+    sibling-chain packages run their root on `weekly`.
+- **Dot-directories never ship, `.pubignore` or not.** pub's built-in ignore
+  rules start with `.*` (`_basicIgnoreRules` in `dart-lang/pub`
+  `lib/src/package.dart`, read 2026-10-26). So `.github/` needs no `.pubignore`
+  line. Measured during #17: with `.github/dependabot.yml` present,
+  `flutter pub publish --dry-run` listed no `.github/`.
 
 ## Code
 
-- `pubspec.yaml` — `environment`, `version`
+- `pubspec.yaml` — `environment`, `version`, `dev_dependencies`
 - `.pubignore`
+- `.github/dependabot.yml`
 - `README.md`, `CHANGELOG.md`
 - the gate commands: `flutter analyze`, `dart format`, `flutter test`,
   `flutter pub publish --dry-run`
@@ -73,8 +95,6 @@ the API, then `git tag --contains`), not recorded against a pinned revision.
   resolves `./example`. A gate run leaves a diff that nobody wrote.
 - **`dart format` was red on `main` under a newer SDK** (5 files, recorded
   during #8). That was a formatter version drift, not code.
-- **No dependency is watched.** The only non-SDK dependency is the dev
-  `flutter_lints`, and the repo has no `.github/` at all. A root-only Dependabot
-  config is designed on the issue, and its *why* is meant to land in this note.
-  `.pubignore` does not list `.github/`, so the first file under it would ship
-  unless it is added there. Tracked: #17.
+- **A Dependabot config error shows only on GitHub.** The schema check catches
+  shape errors. Whether it runs at all shows only in the repo's Dependabot
+  status after the merge.
