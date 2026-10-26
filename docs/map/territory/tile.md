@@ -36,9 +36,29 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
 - **The tile works out interactivity itself for its cursor**
   (`widget.enabled && widget.onChanged != null`), apart from the seam's
   `_isInteractive`. See [Non-interactive](../invariant/non-interactive.md).
-- **The `InkWell` wraps the whole tile**, margin and elevation `Material`
-  included: `CheckboxInteraction` → `InkWell` → `Padding(margin)` →
-  `Material(elevation)` → `AnimatedContainer`.
+- **The nesting:** `Padding(margin)` → `CheckboxInteraction` →
+  `Material(elevation)` (only when `elevation > 0`) → `AnimatedContainer`
+  (background, border, radius) → `Material(transparency)` → `InkWell` →
+  `AnimatedPadding(padding)` → row (#18).
+  - **Ink paints on the nearest ancestor `Material`, under that Material's
+    children.** The transparent `Material` sits *above* the background so the
+    overlays show over it. With the ink on any `Material` above the
+    `AnimatedContainer`, an opaque `backgroundColor` / `selectedColor` /
+    `disabledColor` hides every overlay. That held until #18 (measured:
+    hovered pixel = background).
+  - **`margin` sits outside the seam, not just outside the `InkWell`.** The
+    seam's `FocusableActionDetector` carries the cursor and the `hovered` state,
+    and its `Semantics` sets the node's rect. With the margin outside the
+    `InkWell` only, the margin still shows a click cursor. This was the
+    maintainer's call, shown against that alternative (#18 confirm,
+    2026-10-26).
+  - `Container` insets its child by the border width, so the ink stays inside
+    `tileBorderSide`.
+  - `padding` lives inside the `InkWell`, so the padded area stays tappable.
+    `AnimatedPadding` keeps the animation `AnimatedContainer` used to give it.
+  - **A pixel test of the ink has to capture from a boundary above the
+    `Scaffold`.** A `RepaintBoundary` under it leaves out the ink's `Material`
+    and reads `0x00000000` even where the overlay shows (#18 triage).
 - **`label` and `labelWidget` are mutually exclusive, and so are `subtitle` and
   `subtitleWidget`.** Both are asserted.
 
@@ -77,14 +97,6 @@ The single-interaction-surface rule is a `CLAUDE.md` invariant. No record holds 
   (a link) is swallowed by the merge (ADR 0001).
 - The tile has no `semanticLabel` escape hatch. ADR 0001 leaves that open and no
   issue tracks it.
-- **The overlays may be hidden by the tile's own background.** The `InkWell`
-  sits above the `AnimatedContainer`, and ink paints on the nearest ancestor
-  `Material`, under its children. A non-null `backgroundColor` or
-  `selectedColor` would then cover the hover, focus and splash overlays, and the
-  tap area and ripple include `margin`. Found by reading at a7b403e; not run,
-  since no Flutter SDK was available. Not known before (maintainer, 2026-10-25).
-  The `Chrome` tests pin elevation, margin and border, not the overlays.
-  Tracked: #18.
 - **A custom `labelWidget` gets no disabled styling.** A text `label` takes
   `theme.disabledColor` and the subtitle `Opacity(disabledOpacity)`, but a
   `labelWidget` is used as given. Found by reading at a7b403e. Not known before

@@ -7,7 +7,8 @@ import 'flutter_checkbox.dart';
 /// A tile widget that combines a [FlutterCheckbox] with a label and an
 /// interactive tile container.
 ///
-/// The tap area covers the entire tile. Background color transitions smoothly
+/// The tap area covers the entire tile, [margin] excluded. Background color
+/// transitions smoothly
 /// between [backgroundColor] and [selectedColor] using [AnimatedContainer].
 class FlutterCheckboxTile extends StatefulWidget {
   // ── value & callback ──────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ class FlutterCheckboxTile extends StatefulWidget {
   /// Padding inside the tile.
   final EdgeInsetsGeometry? padding;
 
-  /// Margin outside the tile.
+  /// Margin outside the tile. It is not tappable and takes no ink.
   final EdgeInsetsGeometry? margin;
 
   /// Size constraints for the tile.
@@ -301,39 +302,9 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
         ? Border.fromBorderSide(widget.tileBorderSide!)
         : null;
 
-    // Animated tile background.
-    Widget tile = AnimatedContainer(
-      duration: widget.tileAnimationDuration,
-      curve: widget.tileAnimationCurve,
-      width: widget.expandWidth ? double.infinity : null,
-      padding: widget.padding,
-      constraints: widget.constraints,
-      decoration: BoxDecoration(
-        color: tileColor,
-        borderRadius: widget.tileBorderRadius,
-        border: border,
-      ),
-      child: row,
-    );
-
-    // Elevation via Material.
-    if (widget.elevation > 0) {
-      tile = Material(
-        elevation: widget.elevation,
-        borderRadius: widget.tileBorderRadius,
-        color: Colors.transparent,
-        child: tile,
-      );
-    }
-
-    // Margin.
-    if (widget.margin != null) {
-      tile = Padding(padding: widget.margin!, child: tile);
-    }
-
     // The shared seam owns semantics (the tile's label + checked/tap on one
     // node) and keyboard activation; the tile supplies its own InkWell chrome.
-    return CheckboxInteraction(
+    Widget tile = CheckboxInteraction(
       value: widget.value,
       tristate: widget.tristate,
       enabled: widget.enabled,
@@ -348,7 +319,7 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
       mouseCursor: widget.mouseCursor,
       builder: (context,
           {required focused, required hovered, required activate}) {
-        return InkWell(
+        final inkWell = InkWell(
           // The seam owns the focus node. The InkWell's own Focus would be a
           // second Tab stop on one control — invisible to any semantics
           // assertion, because it nests *under* the seam's Focus, so shortcuts
@@ -364,9 +335,45 @@ class _FlutterCheckboxTileState extends State<FlutterCheckboxTile> {
           highlightColor: widget.highlightColor,
           focusColor: focusColor,
           borderRadius: widget.tileBorderRadius,
-          child: tile,
+          child: AnimatedPadding(
+            duration: widget.tileAnimationDuration,
+            curve: widget.tileAnimationCurve,
+            padding: widget.padding ?? EdgeInsets.zero,
+            child: row,
+          ),
         );
+
+        // Animated tile background, with the ink's Material above it.
+        Widget chrome = AnimatedContainer(
+          duration: widget.tileAnimationDuration,
+          curve: widget.tileAnimationCurve,
+          width: widget.expandWidth ? double.infinity : null,
+          constraints: widget.constraints,
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: widget.tileBorderRadius,
+            border: border,
+          ),
+          child: Material(type: MaterialType.transparency, child: inkWell),
+        );
+
+        // Elevation via Material.
+        if (widget.elevation > 0) {
+          chrome = Material(
+            elevation: widget.elevation,
+            borderRadius: widget.tileBorderRadius,
+            color: Colors.transparent,
+            child: chrome,
+          );
+        }
+        return chrome;
       },
     );
+
+    // Margin, outside the interactive area.
+    if (widget.margin != null) {
+      tile = Padding(padding: widget.margin!, child: tile);
+    }
+    return tile;
   }
 }

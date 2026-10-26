@@ -1,7 +1,9 @@
+import 'dart:ui' as ui;
 import 'dart:ui' show CheckedState, Tristate;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_checkbox/flutter_checkbox.dart';
@@ -113,6 +115,40 @@ RRect shadowRRectFor(
       box.shift(offset).inflate(spread),
       Radius.circular(borderRadius + borderWidth / 2),
     );
+
+/// An app wrapped in a root [RepaintBoundary] keyed `root`, so a captured image
+/// holds every layer, the ink's ancestor `Material` included.
+Widget buildCapturedApp(Widget child) {
+  return RepaintBoundary(
+    key: const Key('root'),
+    child: MaterialApp(
+      home: Scaffold(
+        backgroundColor: const Color(0xFF0000FF),
+        body: Align(alignment: Alignment.topLeft, child: child),
+      ),
+    ),
+  );
+}
+
+/// Reads the rendered colour at [position] (global) from [buildCapturedApp].
+Future<Color> pixelAt(WidgetTester tester, Offset position) async {
+  final boundary =
+      tester.renderObject<RenderRepaintBoundary>(find.byKey(const Key('root')));
+  late Color color;
+  await tester.runAsync(() async {
+    final image = await boundary.toImage();
+    final bytes = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+    final i = (position.dy.toInt() * image.width + position.dx.toInt()) * 4;
+    color = Color.fromARGB(
+      bytes.getUint8(i + 3),
+      bytes.getUint8(i),
+      bytes.getUint8(i + 1),
+      bytes.getUint8(i + 2),
+    );
+    image.dispose();
+  });
+  return color;
+}
 
 Finder findCheckboxPaint() {
   return find.descendant(
@@ -1460,6 +1496,99 @@ void main() {
         paddings.any((p) => p.padding == const EdgeInsets.all(11)),
         isTrue,
       );
+    });
+
+    group('ink over an opaque background', () {
+      const hover = Color(0xFFFF0000);
+
+      Future<void> expectHoverVisible(
+        WidgetTester tester, {
+        required bool value,
+        required Color background,
+      }) async {
+        await tester.pumpWidget(
+          buildCapturedApp(
+            SizedBox(
+              key: const Key('tile'),
+              width: 300,
+              child: FlutterCheckboxTile(
+                value: value,
+                label: 'Inked',
+                backgroundColor: value ? null : background,
+                selectedColor: value ? background : null,
+                hoverColor: hover,
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final rect = tester.getRect(find.byKey(const Key('tile')));
+        final point = Offset(rect.left + 250, rect.center.dy);
+
+        expect(await pixelAt(tester, point), background);
+
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: Offset.zero);
+        addTearDown(mouse.removePointer);
+        await mouse.moveTo(point);
+        await tester.pumpAndSettle();
+
+        expect(await pixelAt(tester, point), hover);
+      }
+
+      testWidgets('hover shows over backgroundColor', (tester) async {
+        await expectHoverVisible(
+          tester,
+          value: false,
+          background: const Color(0xFFFFFFFF),
+        );
+      });
+
+      testWidgets('hover shows over selectedColor', (tester) async {
+        await expectHoverVisible(
+          tester,
+          value: true,
+          background: const Color(0xFF00FF00),
+        );
+      });
+    });
+
+    testWidgets('margin is not part of the interactive area', (tester) async {
+      var calls = 0;
+      await tester.pumpWidget(
+        buildCapturedApp(
+          SizedBox(
+            key: const Key('tile'),
+            width: 300,
+            child: FlutterCheckboxTile(
+              value: false,
+              label: 'Margined',
+              margin: const EdgeInsets.all(20),
+              onChanged: (_) => calls++,
+            ),
+          ),
+        ),
+      );
+      final rect = tester.getRect(find.byKey(const Key('tile')));
+      final inMargin = rect.topLeft + const Offset(5, 5);
+
+      await tester.tapAt(inMargin);
+      await tester.pumpAndSettle();
+      expect(calls, 0);
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: inMargin);
+      addTearDown(mouse.removePointer);
+      await tester.pump();
+      expect(
+        RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+        isNot(SystemMouseCursors.click),
+      );
+
+      await tester.tapAt(rect.center);
+      await tester.pumpAndSettle();
+      expect(calls, 1);
     });
 
     testWidgets('tileBorderSide renders without error', (tester) async {

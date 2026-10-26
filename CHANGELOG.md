@@ -1,3 +1,12 @@
+## 0.3.4
+
+### Fixes
+
+- **`FlutterCheckboxTile`'s overlays show over its background** (#18). With a `backgroundColor`, `selectedColor` or `disabledColor` set, the hover, focus, highlight and splash ink was painted underneath the tile's own background, so it never showed. The ink now paints over the background, clipped to `tileBorderRadius` as before. The background still animates between states.
+- **`FlutterCheckboxTile`'s `margin` is no longer interactive** (#18). A tap in the margin used to toggle the tile. The ripple, hover highlight and click cursor also covered the margin. Now the margin is plain outer spacing.
+
+**Behaviour change:** a tile with a `margin` has a smaller tap and hover area, now exactly the tile's box. Its semantics node shrinks to the same box. A tile without a `margin` is unaffected.
+
 ## 0.3.3
 
 ### Fixes
