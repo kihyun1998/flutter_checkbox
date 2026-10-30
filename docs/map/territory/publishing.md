@@ -24,8 +24,7 @@ the `pubspec.yaml` comment beside the floor.
   honouring `.gitignore`. Every build artefact `.gitignore` hides has to be listed
   again, or it ships. It nearly shipped 87 MB of `build/*.dill` in 0.3.0. The
   file's own header comment says so too.
-- **`CHANGELOG.md` is snapshotted at publish.** A correction after publishing
-  never reaches the people who already read it. A new version opens a new section.
+- Before a release, run `pub-ready`.
 - **Doc comments ship.** dartdoc renders them as the pub.dev API reference, so
   a doc comment that describes old behaviour is a published contract.
 - **Pre-1.0 semver.** Breaking → `0.(x+1).0`; features and fixes →

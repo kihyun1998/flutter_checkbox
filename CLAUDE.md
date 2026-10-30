@@ -46,10 +46,12 @@ python3 scripts/check_map.py --selftest && python3 scripts/check_map.py
 ## Comments
 
 A comment says what the code is. Why it is this way, what it deliberately leaves
-out, the trap and the measured value go to the territory note under `docs/map/`;
-history goes to the commit message. Comments written before this rule still carry
+out, the trap and the measured value go to the territory note under `docs/map/`.
+Where none seems to hold it, search the folder and the code symbol first; only
+then start a new note, named for what the system does there, not for the file.
+History goes to the commit message. Comments written before this rule still carry
 the rest: never delete one whose content the map does not yet hold — move it
-first (`decant`).
+there first.
 
 ## Changes and releases
 
@@ -58,7 +60,7 @@ first (`decant`).
 - A merge that changes behaviour adds its `CHANGELOG.md` entry under the open
   next-version section, opening one if there is none.
 - Releases are batched and the call is the maintainer's. An agent may propose
-  one; **`flutter pub publish` is run by the maintainer, never by an agent.**
+  one. Before a release, run `pub-ready`.
 - Before raising the SDK floor or calling a newer framework API, proposing a
   release, or checking a change against a consumer app, read
   `docs/map/territory/publishing.md`. Nothing gates the SDK floor.

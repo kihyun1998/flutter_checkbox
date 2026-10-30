@@ -18,3 +18,7 @@ See `CLAUDE.md` § Identity & invariants.
 | pub.dev package API | what has shipped | `https://pub.dev/api/packages/flutter_checkbox` — raw JSON | spec |
 
 No *where files go* source: `lib/src/<role>/` is this repo's own.
+
+## Release
+
+pub-ready
